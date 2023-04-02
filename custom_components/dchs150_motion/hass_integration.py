@@ -49,9 +49,10 @@ class HassIntegration:
 
         host = entry.data.get(CONF_HOST)
         pin = entry.data.get(CONF_PIN)
-        interval = float(entry.options.get(CONF_INTERVAL))
+        interval = entry.options.get(CONF_INTERVAL)
         if not interval:
             interval = DEVICE_POLLING_FREQUENCY
+        interval = float(interval)
         update_interval = timedelta(seconds=interval)
 
         time_info = fill_in_timezone(hass.config.time_zone, entry)
