@@ -202,7 +202,7 @@ class DlinkDchs150HassOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        CONF_INTERVAL, default=self.get_default(CONF_INTERVAL)
+                        CONF_INTERVAL, default=str(self.get_default(CONF_INTERVAL))
                     ): str,
                     vol.Required(
                         CONF_BACKOFF, default=self.get_default(CONF_BACKOFF)
