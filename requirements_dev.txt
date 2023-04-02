@@ -1,0 +1,4 @@
+homeassistant
+colorlog
+ruff
+xmltodict

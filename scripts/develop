@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+function workspacePath {
+    if [[ -n "$WORKSPACE_DIRECTORY" ]]; then
+        echo "${WORKSPACE_DIRECTORY}/"
+    else
+        echo "$(find /workspaces -mindepth 1 -maxdepth 1 -type d | tail -1)/"
+    fi
+}
+
+if test -f ".devcontainer/configuration.yaml"; then
+  echo "Link configuration.yaml from $(workspacePath).devcontainer/configuration.yaml"
+  ln -sf "$(workspacePath).devcontainer/configuration.yaml" $(workspacePath)/config/configuration.yaml || echo "FAILED to link .devcontainer/configuration.yaml"
+fi
+
+if test -f ".devcontainer/ui-lovelace.yaml"; then
+  echo "Link ui-lovelace.yaml"
+  ln -sf "$(workspacePath).devcontainer/ui-lovelace.yaml" $(workspacePath)/config/ui-lovelace.yaml || echo "FAILED to link .devcontainer/ui-lovelace.yaml"
+fi
+
+if test -f ".devcontainer/secrets.yaml"; then
+  echo "Link secrets.yaml"
+  ln -sf "$(workspacePath).devcontainer/secrets.yaml" $(workspacePath)/config/secrets.yaml || echo "FAILED to link .devcontainer/secrets.yaml"
+fi
+
+if 0 && test -d "custom_components"; then
+  echo "Symlink the custom component directory"
+
+  if test -d "custom_components"; then
+    rm -R /config/custom_components
+  fi
+
+  ln -sf "$(workspacePath)custom_components/" /config/custom_components || echo "Could not copy the custom_component" exit 1
+elif  test -f "__init__.py"; then
+  echo "Having the component in the root is currently not supported"
+fi
+
+# Validate the configuration
+hass --script ensure_config -c $(workspacePath)/config
+
+# Start Home Assistant
+hass -c $(workspacePath)/config --debug

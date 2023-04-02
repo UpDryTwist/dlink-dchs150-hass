@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "ms-python.python",
+        "github.vscode-pull-request-github",
+        "ryanluker.vscode-coverage-gutters",
+        "ms-python.vscode-pylance"
+    ]
+}

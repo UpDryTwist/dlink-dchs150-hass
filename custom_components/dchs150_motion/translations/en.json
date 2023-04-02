@@ -1,0 +1,54 @@
+{
+  "title": "DLink DCH-S150 Motion Detector",
+  "config": {
+    "step": {
+      "user": {
+        "title": "D-Link DCH-S150 Motion Detector (custom)",
+        "description": "This is an updated component aiming to support the no-longer-supported D-Link DCH-S150 motion detector.  Feel free to read the source here: https://github.com/updrytwist/dlink-dchs150-hass",
+        "data": {
+          "host": "Host/IP",
+          "pin": "PIN (6 digits on back of sensor in tiny print)"
+        }
+      }
+    },
+    "error": {
+      "unable_to_resolve_host": "Unable to resolve the host name provided.  Try checking spelling, etc.",
+      "authentication_error": "Connected to the device, but it didn't accept the authentication.  Presumably wrong PIN - check back of device.",
+      "general_communication": "Something responded at the device host/IP provided, but not in a way we expect.  Wrong device address (i.e., not a DCH-S150 at that address)?",
+      "device_returned_error": "Device responded and appears to be a DCH-S150, but returned an unknown error.  No idea why.",
+      "rebooting": "Device is currently rebooting.  Please try again in about a minute.",
+      "unable_to_connect": "Unable to connect to the host/IP provided.  Check entry, ensure device is live and connect to network (try pinging it).",
+      "invalid_device_state": "Encountered an unexpected device state.  May need to restart HASS or this integration."
+    },
+    "abort": {
+      "single_instance_allowed": "Only a single instance is allowed."
+    }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "title": "D-Link DCH-S150 Motion Detector Options",
+        "description": "The update interval determines how frequently we poll.  The time zone settings are pushed to the device.  Feel free to read the source here: https://github.com/updrytwist/dlink-dchs150-hass",
+        "data": {
+          "update_interval": "Update interval (secs) - impacts sys load (bad) and responsiveness (good)",
+          "backoff": "How long (secs) device waits before next motion signal - set low for very responsive",
+          "sensitivity": "Sensitivity of motion detector - 99 is most sensitive, 1 is least (I think)",
+          "op_status": "Uncheck this to disable the detector",
+          "nick_name": "Nickname for the device",
+          "description": "Description for the device",
+          "ntp_server": "NTP server to use for updates (default should be OK)",
+          "tz_offset": "Offset in hours from UTC (default should be OK)",
+          "tz_dst": "Is it currently Daylight Savings? (default should be OK)",
+          "tz_dst_start_month": "Month Daylight Savings starts",
+          "tz_dst_start_week": "Week of month Daylight Savings starts",
+          "tz_dst_start_day_of_week": "Day of Week Daylight Savings starts",
+          "tz_dst_start_time": "Hour of day Daylight Savings starts",
+          "tz_dst_end_month": "Month Daylight Savings ends",
+          "tz_dst_end_week": "Week of month Daylight Savings ends",
+          "tz_dst_end_day_of_week": "Day of week Daylight Savings ends",
+          "tz_dst_end_time": "Hour of day Daylight Savings ends"
+        }
+      }
+    }
+  }
+}

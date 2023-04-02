@@ -1,0 +1,21 @@
+// See https://aka.ms/vscode-remote/devcontainer.json for format details.
+{
+  "image": "mcr.microsoft.com/vscode/devcontainers/python:0-3.10-bullseye",
+  "name": "dlink_dchs150_hass integration development",
+  "appPort": [
+    // Reroute the standard 8123 port to 9123
+    "9123:8123"
+  ],
+  // This command comes from our scripts directory, and sets up the environment
+  "postCreateCommand": "scripts/setup",
+  "mounts": [
+    // Custom configuration directory
+    "source=${localEnv:USERPROFILE}/Documents/Apps/dlink-dchs150-hass/config,target=${containerWorkspaceFolder}/config,type=bind",
+    // Custom component
+    "source=${localEnv:USERPROFILE}/Documents/Apps/dlink-dchs150-hass/custom_components/dchs150_motion,target=${containerWorkspaceFolder}/config/custom_components/dchs150_motion,type=bind"
+  ],
+  "remoteUser": "vscode",
+  "features": {
+    "rust": "latest"
+  }
+}

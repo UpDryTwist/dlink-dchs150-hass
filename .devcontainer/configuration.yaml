@@ -1,0 +1,17 @@
+default_config:
+
+logger:
+  default: info
+  logs:
+    # Setting this to debug will record every poll of the device!
+    custom_components.dchs150_motion: info
+    # The below settings should only be set to debug to get detailed dumps out . . .
+    custom_components.dchs150_motion.hass_integration: debug
+    custom_components.dchs150_motion.dch_wifi: debug
+    custom_components.dchs150_motion.config_flow: debug
+    custom_components.dchs150_motion.api: debug
+
+# If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
+debugpy:
+    start: true
+    wait: false
