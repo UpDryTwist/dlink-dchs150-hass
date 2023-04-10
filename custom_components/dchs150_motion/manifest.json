@@ -5,12 +5,8 @@
   "issue_tracker": "https://github.com/updrytwist/dlink-dchs150-hass/issues",
   "dependencies": [],
   "config_flow": true,
-  "codeowners": [
-    "@updrytwist"
-  ],
-  "requirements": [
-    "xmltodict"
-  ],
+  "codeowners": ["@updrytwist"],
+  "requirements": ["xmltodict"],
   "iot_class": "local_polling",
   "version": "0.1.0"
 }

@@ -6,7 +6,7 @@
       "type": "shell",
       "command": "scripts/develop",
       "problemMatcher": []
-    },
+    }
     // See:  https://github.com/ludeeus/container/tree/main/container/helpers/common/homeassistant
     // Don't use the tasks below - they're just remnants
     // {

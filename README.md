@@ -16,12 +16,12 @@
 
 **This component will set up the following platforms.**
 
-| Platform        | Description                                                               |
-| --------------- | ------------------------------------------------------------------------- |
-| `binary_sensor` | Show something `True` or `False`.                                         |
+| Platform        | Description                       |
+| --------------- | --------------------------------- |
+| `binary_sensor` | Show something `True` or `False`. |
 
 This is a Home Assistant driver for the D-Link DCH-S150 motion detector, which is no longer
-supported by D-Link.  This component does what it can to smack the device into shape -- including
+supported by D-Link. This component does what it can to smack the device into shape -- including
 the ability to set the backoff time (how long it ignores additional motion detections), the ability
 to set the Home Assitant polling time (upgrade from prior components), the ability to fix the time zone
 settings (important now that D-Link's URLs are no longer any good), the ability to tweak sensitivity,
@@ -64,22 +64,22 @@ custom_components/dchs150_motion/strings.json
 You can do a lot of additional configuration by clicking "Configuration" in the device setup.
 Some of this is even more than you could do in the initial phone app!
 
-*NOTE:* Pushing these parameters has only been tested a bit on my devices -- no guarantees it
-won't screw up your device somehow.  But given that these devices are close to dead, anyhow, why
+_NOTE:_ Pushing these parameters has only been tested a bit on my devices -- no guarantees it
+won't screw up your device somehow. But given that these devices are close to dead, anyhow, why
 not experiment!
 
 Here are some parameters you can tinker with:
 
-| Parameter       | Description
-| --------------- | -------------------------------------------------------------------------
-| `Update Interval` | Sets the polling frequency from HASS.  You can set this to any number; it's in seconds (fractional seconds appear to work). Note that the smaller the number, the more network traffic, and the more server load -- but the faster the responsiveness.
-| `Device Wait`     | Otherwise known as "backoff".  This is how long the device ignores additional motion, before detecting a "new" motion.  By default, this was set to 30 seconds in the device - you probably noticed that it would ignore your motion.  If you're trying to get a motion sensor that keeps triggered when you keep moving (this is, I think, the normal case), then set this down low, like 1-2 seconds.  Just the ability to bump this down made the device so much better for me!
-| `Sensitivity`     | I'm not sure exactly how this works, but you can tweak it to see how it goes . . .
-| `Disable Detector` | It's a setting, so I included it . . . but why bother?
-| `Nickname`        | I don't know that this is useful, but it can be set.  NOTE:  I couldn't get the HNAP command `SetDeviceSettings` to work, so I couldn't reset the basic device name, which is what would be really useful.  If you know the parameters to that command, please let me know!
-| `Description`     | Another one that may not be useful . . . but you can set it on the device . . .
-| `NTP server`      | The device _really_ needs to get to a good NTP server, or it won't work.  By default it goes to ntp1.dlink.com.  That DNS entry was offline for a while, but recently (2023-03-30) has been repointed to time2.google.com.  I default this to time.google.com.
-| Time zone stuff   | You should set this all appropriately for your location.
+| Parameter          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Update Interval`  | Sets the polling frequency from HASS. You can set this to any number; it's in seconds (fractional seconds appear to work). Note that the smaller the number, the more network traffic, and the more server load -- but the faster the responsiveness.                                                                                                                                                                                                                          |
+| `Device Wait`      | Otherwise known as "backoff". This is how long the device ignores additional motion, before detecting a "new" motion. By default, this was set to 30 seconds in the device - you probably noticed that it would ignore your motion. If you're trying to get a motion sensor that keeps triggered when you keep moving (this is, I think, the normal case), then set this down low, like 1-2 seconds. Just the ability to bump this down made the device so much better for me! |
+| `Sensitivity`      | I'm not sure exactly how this works, but you can tweak it to see how it goes . . .                                                                                                                                                                                                                                                                                                                                                                                             |
+| `Disable Detector` | It's a setting, so I included it . . . but why bother?                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `Nickname`         | I don't know that this is useful, but it can be set. NOTE: I couldn't get the HNAP command `SetDeviceSettings` to work, so I couldn't reset the basic device name, which is what would be really useful. If you know the parameters to that command, please let me know!                                                                                                                                                                                                       |
+| `Description`      | Another one that may not be useful . . . but you can set it on the device . . .                                                                                                                                                                                                                                                                                                                                                                                                |
+| `NTP server`       | The device _really_ needs to get to a good NTP server, or it won't work. By default it goes to ntp1.dlink.com. That DNS entry was offline for a while, but recently (2023-03-30) has been repointed to time2.google.com. I default this to time.google.com.                                                                                                                                                                                                                    |
+| Time zone stuff    | You should set this all appropriately for your location.                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 ## Initializing a device
 
@@ -87,11 +87,11 @@ If for some reason you have a DCH-S150 that you never configured, or if you have
 factory-reset your device (hopefully not because you were futzing with parameters with this
 component!), then you can check out my script [here](https://raw.githubusercontent.com/UpDryTwist/defogger-dch-s150/master/dch-wifi.py)
 
-* You can probably ignore the rest of the project it’s in. I initially cloned bmork’s cool DCS-8000LH defogger (i.e., cloud remover) project, and started tinkering with that, until I remembered that I’d never been successful setting up my devices using Bluetooth from my phone – so I never got the BTLE stuff to work – and, frankly, you don’t need to.
+- You can probably ignore the rest of the project it’s in. I initially cloned bmork’s cool DCS-8000LH defogger (i.e., cloud remover) project, and started tinkering with that, until I remembered that I’d never been successful setting up my devices using Bluetooth from my phone – so I never got the BTLE stuff to work – and, frankly, you don’t need to.
 
-* You need to connect your wifi to the access point the device advertises. Afterwards, it’ll probably show up at IP 192.168.0.60. Make sure you can access that cleanly before anything else (you can go try logging in at that IP - won’t accomplish much, but proves you can get there).  I do all this from a Linux box - that's probably the easiest way.
+- You need to connect your wifi to the access point the device advertises. Afterwards, it’ll probably show up at IP 192.168.0.60. Make sure you can access that cleanly before anything else (you can go try logging in at that IP - won’t accomplish much, but proves you can get there). I do all this from a Linux box - that's probably the easiest way.
 
-* In theory, this code supports both password-protected wi-fi and open wi-fi. I wrote all the code to work with a password, and debugged it through to the point that the D-Link device was accepting my requests without error, but not connecting to my network . . . and then I finally remembered that I had to set up a whole separate 2.4Ghz open network (filtered by MAC address) for these devices, as they didn’t like connecting to my main network. SO . . . if your network is password protected, this may or may not work for you.
+- In theory, this code supports both password-protected wi-fi and open wi-fi. I wrote all the code to work with a password, and debugged it through to the point that the D-Link device was accepting my requests without error, but not connecting to my network . . . and then I finally remembered that I had to set up a whole separate 2.4Ghz open network (filtered by MAC address) for these devices, as they didn’t like connecting to my main network. SO . . . if your network is password protected, this may or may not work for you.
 
 ## Contributions are welcome!
 
@@ -114,8 +114,6 @@ You can find HNAP documentation (a bit old) [here](https://wiki.elvis.science/im
 For deconstructing what might be happening in the firmware, take a look at [@0xdead8ead](https://github.com/0xdead8ead)'s copy of the [DIR-865 firmware](https://github.com/0xdead8ead/dlink_dir-865L/tree/master/DIR-865L_REVA_FIRMWARE_1.07.B01/fmk/rootfs/etc/templates/hnap) or [@jhbsz](https://github.com/jhbsz)'s copy of the [DIR-850L_A1 firmware](https://github.com/jhbsz/DIR-850L_A1/tree/master/templates/aries/progs/htdocs/hnap) -- this was helpful in guessing parameters in general for the D-Link HNAP implementation.
 
 In terms of understanding the authentication handshake, check out the Embedded Lab Vienna for IoT & Security (ELVIS)'s [HNAPown](https://wiki.elvis.science/index.php?title=HNAP0wn:_The_Home_Network_Administration_Protocol_Owner) for a good discussion of brute forcing the embedded HTTP server.
-
-
 
 ---
 

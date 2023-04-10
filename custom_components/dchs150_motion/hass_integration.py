@@ -15,14 +15,16 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from .api import DlinkDchs150HassApiClient, fill_in_timezone, fill_in_motion
-from .const import CONF_PIN
+from .api import DlinkDchs150HassApiClient
+from .api import fill_in_motion
+from .api import fill_in_timezone
+from .const import BINARY_SENSOR
 from .const import CONF_HOST
 from .const import CONF_INTERVAL
-from .const import BINARY_SENSOR
+from .const import CONF_PIN
+from .const import DEVICE_POLLING_FREQUENCY
 from .const import DOMAIN
 from .const import STARTUP_MESSAGE
-from .const import DEVICE_POLLING_FREQUENCY
 from .const import UPDATE_LISTENER_REMOVE
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
@@ -78,7 +80,7 @@ class HassIntegration:
 
         # If we haven't already, register to get update messages . . . but only once!
         if (
-            not UPDATE_LISTENER_REMOVE in hass.data[DOMAIN]
+            UPDATE_LISTENER_REMOVE not in hass.data[DOMAIN]
             or not hass.data[DOMAIN][UPDATE_LISTENER_REMOVE]
         ):
             hass.data[DOMAIN][UPDATE_LISTENER_REMOVE] = entry.add_update_listener(

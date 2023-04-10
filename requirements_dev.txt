@@ -2,3 +2,4 @@ homeassistant
 colorlog
 ruff
 xmltodict
+pre-commit

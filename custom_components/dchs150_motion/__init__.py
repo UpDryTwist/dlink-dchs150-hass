@@ -5,6 +5,7 @@ For more details about this integration, please refer to
 https://github.com/updrytwist/dlink-dchs150-hass
 """
 import logging
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config
 from homeassistant.core import HomeAssistant

@@ -11,11 +11,11 @@
 
 **This component will set up the following platforms.**
 
-| Platform        | Description                         |
-| --------------- | ----------------------------------- |
-| `binary_sensor` | Show something `True` or `False`.   |
+| Platform        | Description                       |
+| --------------- | --------------------------------- |
+| `binary_sensor` | Show something `True` or `False`. |
 
-![DCH-S150][DCH-S150]
+![DCH-S150][dch-s150]
 
 {% if not installed %}
 

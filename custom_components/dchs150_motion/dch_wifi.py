@@ -1,47 +1,43 @@
 """Implements HNAP connectivity to a D-Link DCH-S150"""
 # Use the project defogger-dch-s150 to connect your DCH-S150
 # to your wifi AP now that D-Link doesn't work.
-
 # This contains code derived directly from:
 #    https://github.com/postlund/dlink_hnap/blob/master/custom_components/dlink_hnap/dlink.py
 # Also particular thanks to:
 #    https://wiki.elvis.science/index.php?title=Examination_of_mydlink%E2%84%A2_home_devices
-
+import asyncio
 import hmac
 import logging
 import xml
 import xml.etree.ElementTree as ET
+from datetime import datetime
+from datetime import timedelta
 from enum import Enum
 from io import BytesIO
-from datetime import datetime, timedelta
 from socket import gaierror
 
-import asyncio
 import aiohttp
+import xmltodict
 from aiohttp.client_exceptions import ClientConnectorError
 
-import xmltodict
-
-from .const import REBOOT_SECONDS
-from .const import REBOOT_HOUR
-from .const import DEFAULT_SOAP_TIMEOUT
-from .const import REBOOT_SOAP_TIMEOUT
-
-from .const import DEFAULT_NTP_SERVER
-from .const import DEFAULT_TZ_OFFSET
-from .const import DEFAULT_TZ_DST
-from .const import DEFAULT_TZ_DST_START_MONTH
-from .const import DEFAULT_TZ_DST_START_WEEK
-from .const import DEFAULT_TZ_DST_START_DAY_OF_WEEK
-from .const import DEFAULT_TZ_DST_START_TIME
-from .const import DEFAULT_TZ_DST_END_MONTH
-from .const import DEFAULT_TZ_DST_END_WEEK
-from .const import DEFAULT_TZ_DST_END_DAY_OF_WEEK
-from .const import DEFAULT_TZ_DST_END_TIME
-
 from .const import DEFAULT_BACKOFF_SECONDS
-from .const import DEFAULT_SENSITIVITY
+from .const import DEFAULT_NTP_SERVER
 from .const import DEFAULT_OP_STATUS
+from .const import DEFAULT_SENSITIVITY
+from .const import DEFAULT_SOAP_TIMEOUT
+from .const import DEFAULT_TZ_DST
+from .const import DEFAULT_TZ_DST_END_DAY_OF_WEEK
+from .const import DEFAULT_TZ_DST_END_MONTH
+from .const import DEFAULT_TZ_DST_END_TIME
+from .const import DEFAULT_TZ_DST_END_WEEK
+from .const import DEFAULT_TZ_DST_START_DAY_OF_WEEK
+from .const import DEFAULT_TZ_DST_START_MONTH
+from .const import DEFAULT_TZ_DST_START_TIME
+from .const import DEFAULT_TZ_DST_START_WEEK
+from .const import DEFAULT_TZ_OFFSET
+from .const import REBOOT_HOUR
+from .const import REBOOT_SECONDS
+from .const import REBOOT_SOAP_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
 

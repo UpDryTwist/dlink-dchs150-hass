@@ -1,14 +1,14 @@
 """Binary sensor platform for dlink_dchs150_hass."""
-
-from datetime import timedelta, datetime
+from datetime import datetime
+from datetime import timedelta
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 
 from .const import BINARY_SENSOR_DEVICE_CLASS
-from .const import DOMAIN
 from .const import BINARY_SENSOR_NAME
-from .const import DEFAULT_BACKOFF_SECONDS
 from .const import CONF_BACKOFF
+from .const import DEFAULT_BACKOFF_SECONDS
+from .const import DOMAIN
 from .entity import DlinkDchs150HassEntity
 
 
