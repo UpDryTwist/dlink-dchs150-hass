@@ -38,7 +38,7 @@ async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
     assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
     assert (
         type(hass.data[DOMAIN][config_entry.entry_id])
-        == DlinkDchs150HassDataUpdateCoordinator
+        is DlinkDchs150HassDataUpdateCoordinator
     )
 
     # Reload the entry and assert that the data from above is still there
@@ -46,7 +46,7 @@ async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
     assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
     assert (
         type(hass.data[DOMAIN][config_entry.entry_id])
-        == DlinkDchs150HassDataUpdateCoordinator
+        is DlinkDchs150HassDataUpdateCoordinator
     )
 
     # Unload the entry and verify that the data has been removed

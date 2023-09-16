@@ -102,7 +102,8 @@ class DlinkDchs150HassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             host = user_input[CONF_HOST]
             pin = user_input[CONF_PIN]
-            interval = float(user_input[CONF_INTERVAL])
+            if CONF_INTERVAL in user_input:
+                interval = float(user_input[CONF_INTERVAL])
         _LOGGER.debug("Showing config form for interval %s", interval)
         return self.async_show_form(
             step_id="user",

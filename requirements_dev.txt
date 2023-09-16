@@ -3,3 +3,6 @@ colorlog
 ruff
 xmltodict
 pre-commit
+flake8
+pytest
+reorder-python-imports

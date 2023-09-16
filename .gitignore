@@ -7,3 +7,4 @@ venv
 .cookiecutter.json
 .storage
 config
+.idea
