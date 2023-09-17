@@ -8,5 +8,6 @@
   "codeowners": ["@updrytwist"],
   "requirements": ["xmltodict"],
   "iot_class": "local_polling",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "integration_type": "hub"
 }
