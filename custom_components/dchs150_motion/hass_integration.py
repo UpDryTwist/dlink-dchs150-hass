@@ -37,7 +37,7 @@ class HassIntegration:
 
     @staticmethod
     async def async_setup(
-        hass: HomeAssistant, config: Config
+        _hass: HomeAssistant, _config: Config
     ):  # pylint: disable=unused-argument
         """Set up this integration using YAML is not supported."""
         return True
@@ -69,12 +69,12 @@ class HassIntegration:
         await coordinator.async_refresh()
 
         if not coordinator.last_update_success:
-            _LOGGER.DEBUG("Coordinator failed last_update_success()")
+            _LOGGER.debug("Coordinator failed last_update_success()")
             raise ConfigEntryNotReady
 
         hass.data[DOMAIN][entry.entry_id] = coordinator
 
-        hass.async_add_job(
+        await hass.async_add_job(
             hass.config_entries.async_forward_entry_setup(entry, BINARY_SENSOR)
         )
 
@@ -115,7 +115,7 @@ class DlinkDchs150HassDataUpdateCoordinator(DataUpdateCoordinator):
         self,
         hass: HomeAssistant,
         client: DlinkDchs150HassApiClient,
-        update_interval: int,
+        update_interval: timedelta,
     ) -> None:
         """Initialize."""
         self.api = client
