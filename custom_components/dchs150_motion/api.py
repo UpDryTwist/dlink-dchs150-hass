@@ -163,6 +163,16 @@ class DlinkDchHassApiClient:
         return self._client.model_name
 
     @property
+    def device_name(self) -> str:
+        """Return the device name"""
+        return self._client.device_name
+
+    @property
+    def full_device_name(self) -> str:
+        """Long name including IP"""
+        return f"{self._client.device_name}: {self._client.mac_address} at {self._client.url_address}"
+
+    @property
     def detection_type(self) -> str:
         """Return 'motion' or 'water'"""
         return "water" if self.device_type == "DCH-S160" else "motion"

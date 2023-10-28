@@ -140,4 +140,4 @@ class DlinkDchHassDataUpdateCoordinator(DataUpdateCoordinator):
                 exception,
                 exc_info=exception,
             )
-            raise UpdateFailed() from exception
+            raise UpdateFailed(self.api.full_device_name) from exception

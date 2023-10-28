@@ -173,6 +173,11 @@ class HNAPClient:
         self.device_name = None
         self.vendor_name = None
 
+    @property
+    def url_address(self) -> str:
+        """Return our SOAP client's URL"""
+        return self._client.address
+
     def set_next_reboot(self):
         """Set the next reboot time to the next time at the _next_reboot_hour."""
         now = datetime.now()
