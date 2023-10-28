@@ -414,56 +414,53 @@ class HNAPClient:
         if self._next_reboot_at and datetime.now() > self._next_reboot_at:
             self.set_status(HNAPDeviceStatus.NEEDS_REBOOT)
 
-        match self._status:
-            case (
-                HNAPDeviceStatus.UNKNOWN
-                | HNAPDeviceStatus.DISCONNECTED
-                | HNAPDeviceStatus.COMMUNICATION_ERROR
-                | HNAPDeviceStatus.INTERNAL_ERROR
-                | HNAPDeviceStatus.INVALID_PIN
-            ):
+        if self._status in [
+            HNAPDeviceStatus.UNKNOWN,
+            HNAPDeviceStatus.DISCONNECTED,
+            HNAPDeviceStatus.COMMUNICATION_ERROR,
+            HNAPDeviceStatus.INTERNAL_ERROR,
+            HNAPDeviceStatus.INVALID_PIN,
+        ]:
+            await self.login()
+        elif self._status == HNAPDeviceStatus.INITIALIZING:
+            # We shouldn't be here!
+            self.set_status(HNAPDeviceStatus.UNKNOWN)
+            _LOGGER.info("DCH-S150 status is INITIALIZING - shouldn't be making calls.")
+            raise RecursionError(
+                "Device status is INITIALIZING - shouldn't be making calls."
+            )
+        elif self._status == HNAPDeviceStatus.ONLINE:
+            pass
+        elif self._status == HNAPDeviceStatus.NEEDS_REBOOT:
+            await self.reboot()
+            raise Rebooting("Device needs reboot - can't make calls.")
+        elif self._status == HNAPDeviceStatus.REBOOTING:
+            # Get the time since the reboot was initiated
+            reboot_seconds = (datetime.now() - self._rebooted_at).total_seconds()
+            if reboot_seconds > self._reboot_seconds:
+                _LOGGER.debug(
+                    "Rebooted at %s, reboot_seconds: %s, reboot_seconds: %s",
+                    self._rebooted_at,
+                    reboot_seconds,
+                    self._reboot_seconds,
+                )
+                # We've rebooted, so now mark us as offline and ready to connect
+                self.set_status(HNAPDeviceStatus.DISCONNECTED)
+                # Try to login again
                 await self.login()
-            case HNAPDeviceStatus.INITIALIZING:
-                # We shouldn't be here!
-                self.set_status(HNAPDeviceStatus.UNKNOWN)
-                _LOGGER.info(
-                    "DCH-S150 status is INITIALIZING - shouldn't be making calls."
-                )
-                raise RecursionError(
-                    "Device status is INITIALIZING - shouldn't be making calls."
-                )
-            case HNAPDeviceStatus.ONLINE:
-                pass
-            case HNAPDeviceStatus.NEEDS_REBOOT:
-                await self.reboot()
-                raise Rebooting("Device needs reboot - can't make calls.")
-            case HNAPDeviceStatus.REBOOTING:
-                # Get the time since the reboot was initiated
-                reboot_seconds = (datetime.now() - self._rebooted_at).total_seconds()
-                if reboot_seconds > self._reboot_seconds:
-                    _LOGGER.debug(
-                        "Rebooted at %s, reboot_seconds: %s, reboot_seconds: %s",
-                        self._rebooted_at,
-                        reboot_seconds,
-                        self._reboot_seconds,
-                    )
-                    # We've rebooted, so now mark us as offline and ready to connect
-                    self.set_status(HNAPDeviceStatus.DISCONNECTED)
-                    # Try to login again
-                    await self.login()
-                else:
-                    # Can't make calls at this point, as we're rebooting.
-                    # Leave the status as REBOOTING
-                    raise Rebooting("Device is rebooting - can't make calls.")
-            case _:  # catch-all
-                # We shouldn't be here!
-                self.set_status(HNAPDeviceStatus.UNKNOWN)
-                _LOGGER.info(
-                    f"{self.device_name} status is in unknown state {self._status} - shouldn't be making calls."
-                )
-                raise ValueError(
-                    "Device status is in unknown state {self._status}- shouldn't be making calls."
-                )
+            else:
+                # Can't make calls at this point, as we're rebooting.
+                # Leave the status as REBOOTING
+                raise Rebooting("Device is rebooting - can't make calls.")
+        else:  # Catch-all
+            # We shouldn't be here!
+            self.set_status(HNAPDeviceStatus.UNKNOWN)
+            _LOGGER.info(
+                f"{self.device_name} status is in unknown state {self._status} - shouldn't be making calls."
+            )
+            raise ValueError(
+                "Device status is in unknown state {self._status}- shouldn't be making calls."
+            )
 
     async def ensure_connected(self):
         """Ensure we're connected to the device."""
