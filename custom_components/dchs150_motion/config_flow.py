@@ -154,11 +154,14 @@ class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
             self.device_detection_defaults = DeviceDetectionSettingsInfo()
         if "Backoff" in settings:
             self.device_detection_defaults.backoff = int(settings["Backoff"])
-        self.device_detection_defaults.nick_name = settings["NickName"]
-        self.device_detection_defaults.description = settings["Description"]
+        if "NickName" in settings:
+            self.device_detection_defaults.nick_name = settings["NickName"]
+        if "Description" in settings:
+            self.device_detection_defaults.description = settings["Description"]
         if "Sensitivity" in settings:
             self.device_detection_defaults.sensitivity = int(settings["Sensitivity"])
-        self.device_detection_defaults.op_status = settings["OPStatus"] != "false"
+        if "OPStatus" in settings:
+            self.device_detection_defaults.op_status = settings["OPStatus"] != "false"
 
     def get_default(self, key):
         """Get the pre-existing option, or look up a default if it doesn't exist."""
