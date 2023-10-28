@@ -375,16 +375,11 @@ class HNAPClient:
                 )
 
         # If we already handled it, we're good . . .
-        except (
-            AuthenticationError,
-            GeneralCommunicationError,
-            DeviceReturnedError,
-            Rebooting,
-            UnableToResolveHost,
-            UnableToConnect,
-            InvalidDeviceState,
-            UnsupportedDeviceType,
-        ):
+        except (AuthenticationError, GeneralCommunicationError):
+            raise
+        except (DeviceReturnedError, Rebooting, UnableToResolveHost):
+            raise
+        except (UnableToConnect, InvalidDeviceState, UnsupportedDeviceType):
             raise
 
         except Exception as exc:
