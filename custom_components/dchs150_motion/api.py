@@ -199,7 +199,10 @@ class DlinkDchHassApiClient:
         """Get the last motion detected time."""
 
         resp = await self._client.get_latest_detection()
-        if "LatestDetectTime" not in resp:
+        if "LatestDetectTime" not in resp or not (
+            isinstance(resp["LatestDetectTime"], float)
+            or isinstance(resp["LatestDetectTime"], str)
+        ):
             # Not sure exactly what this means, but return something in the past.
             last_detected = datetime.datetime(
                 year=2020, month=1, day=1, hour=1, minute=1, second=1
