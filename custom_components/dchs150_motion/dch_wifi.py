@@ -15,6 +15,7 @@ from datetime import timedelta
 from enum import Enum
 from io import BytesIO
 from socket import gaierror
+from typing import Optional
 
 import aiohttp
 import xmltodict
@@ -89,6 +90,10 @@ class InvalidDeviceState(Exception):
     """For some reason we're in an invalid state.  Hunh."""
 
 
+class UnsupportedDeviceType(Exception):
+    """A device type we've never seen"""
+
+
 class HNAPDeviceStatus(Enum):
     """As far as we can tell, status of the device."""
 
@@ -119,11 +124,11 @@ class TimeInfo:
     tz_dst_end_time = DEFAULT_TZ_DST_END_TIME
 
 
-class MotionInfo:
-    """Structure for passing around motion detection settings info"""
+class DeviceDetectionSettingsInfo:
+    """Structure for passing around motion detection / water settings info"""
 
-    backoff = DEFAULT_BACKOFF_SECONDS
-    sensitivity = DEFAULT_SENSITIVITY
+    backoff = DEFAULT_BACKOFF_SECONDS  # Only for motion detector
+    sensitivity = DEFAULT_SENSITIVITY  # Only for motion detector
     op_status = DEFAULT_OP_STATUS
     nick_name = None
     description = None
@@ -137,8 +142,8 @@ class HNAPClient:
         soap,
         username,
         password,
-        timeinfo: TimeInfo,
-        motioninfo: MotionInfo,
+        time_info: Optional[TimeInfo] = None,
+        device_detection_settings_info: Optional[DeviceDetectionSettingsInfo] = None,
         loop=None,
     ):
         """Initialize a new HNAPClient instance."""
@@ -151,8 +156,8 @@ class HNAPClient:
         self._auth_token = None
         self._timestamp = None
         self._status = HNAPDeviceStatus.UNKNOWN
-        self._timeinfo = timeinfo
-        self._motioninfo = motioninfo
+        self._time_info = time_info
+        self._device_detection_settings_info = device_detection_settings_info
 
         self._next_reboot_hour = REBOOT_HOUR
         self._next_reboot_at = None
@@ -185,7 +190,7 @@ class HNAPClient:
 
     def set_status(self, status):
         """Set the status of the device."""
-        _LOGGER.debug("Setting DCH-S150 status to %s", status)
+        _LOGGER.debug(f"Setting {self.device_name} status to {status}")
         self._status = status
 
     def get_name(self):
@@ -197,8 +202,6 @@ class HNAPClient:
         get the device settings."""
         if self._ran_initialization:
             return
-        await self.set_time_settings()
-        await self.set_motion_settings()
         settings = await self.get_device_settings()
         self.mac_address = settings["DeviceMacId"]
         self.model_name = settings["ModelName"]
@@ -206,6 +209,9 @@ class HNAPClient:
         self.hardware_version = settings["HardwareVersion"]
         self.device_name = settings["DeviceName"]
         self.vendor_name = settings["VendorName"]
+        await self.set_time_settings()
+        await self.set_device_settings()
+
         self._ran_initialization = True
 
     async def reboot(self):
@@ -226,32 +232,36 @@ class HNAPClient:
         """Get the device settings from the device."""
         return await self.call("GetDeviceSettings", timeout=DEFAULT_SOAP_TIMEOUT)
 
-    async def get_motion_detector_settings(self):
-        """Get the motion detection settings from the device"""
+    async def get_device_detector_settings(self):
+        """Get the motion or water detection settings from the device"""
         return await self.call(
-            "GetMotionDetectorSettings", timeout=DEFAULT_SOAP_TIMEOUT, ModuleID=1
+            "GetWaterDetectorSettings"
+            if self.device_name == "DCH-S160"
+            else "GetMotionDetectorSettings",
+            timeout=DEFAULT_SOAP_TIMEOUT,
+            ModuleID=1,
         )
 
     async def set_time_settings(self):
         """Set the time settings on the device.  In particular, reset from ntp1.dlink.com!"""
-        if not self._timeinfo:
+        if not self._time_info:
             return
         _LOGGER.debug("Setting default time settings for device - %s", self.get_name())
         await self.call(
             "SetTimeSettings",
             timeout=DEFAULT_SOAP_TIMEOUT,
             NTP="true",
-            NTPServer=self._timeinfo.ntp_server,
-            TimeZone=self._timeinfo.tz_offset,
-            DaylightSaving="true" if self._timeinfo.tz_dst else "false",
-            DSTStartMonth=self._timeinfo.tz_dst_start_month,
-            DSTStartWeek=self._timeinfo.tz_dst_start_week,
-            DSTStartDayOfWeek=self._timeinfo.tz_dst_start_day_of_week,
-            DSTStartTime=self._timeinfo.tz_dst_start_time,
-            DSTEndMonth=self._timeinfo.tz_dst_end_month,
-            DSTEndWeek=self._timeinfo.tz_dst_end_week,
-            DSTEndDayOfWeek=self._timeinfo.tz_dst_end_day_of_week,
-            DSTEndTime=self._timeinfo.tz_dst_end_time,
+            NTPServer=self._time_info.ntp_server,
+            TimeZone=self._time_info.tz_offset,
+            DaylightSaving="true" if self._time_info.tz_dst else "false",
+            DSTStartMonth=self._time_info.tz_dst_start_month,
+            DSTStartWeek=self._time_info.tz_dst_start_week,
+            DSTStartDayOfWeek=self._time_info.tz_dst_start_day_of_week,
+            DSTStartTime=self._time_info.tz_dst_start_time,
+            DSTEndMonth=self._time_info.tz_dst_end_month,
+            DSTEndWeek=self._time_info.tz_dst_end_week,
+            DSTEndDayOfWeek=self._time_info.tz_dst_end_day_of_week,
+            DSTEndTime=self._time_info.tz_dst_end_time,
         )
         if _LOGGER.isEnabledFor(logging.DEBUG):
             time_settings = await self.call(
@@ -259,35 +269,52 @@ class HNAPClient:
             )
             _LOGGER.debug("Current time settings on the device: %s", time_settings)
 
-    async def set_motion_settings(self):
+    async def set_device_settings(self):
         """Set the motion detection settings on the device."""
-        if not self._motioninfo:
+        if not self._device_detection_settings_info:
             return
         _LOGGER.debug(
-            "Setting motion settings for device - %s %s (%s) Sensitive: %s On: %s Backoff %s",
+            "Setting device settings for device - %s %s (%s) Sensitive: %s On: %s Backoff %s",
             self.get_name(),
-            self._motioninfo.nick_name,
-            self._motioninfo.description,
-            self._motioninfo.sensitivity,
-            self._motioninfo.op_status,
-            self._motioninfo.backoff,
+            self._device_detection_settings_info.nick_name,
+            self._device_detection_settings_info.description,
+            self._device_detection_settings_info.sensitivity,
+            self._device_detection_settings_info.op_status,
+            self._device_detection_settings_info.backoff,
         )
-        await self.call(
-            "SetMotionDetectorSettings",
-            timeout=DEFAULT_SOAP_TIMEOUT,
-            ModuleID=1,
-            NickName=self._motioninfo.nick_name,
-            Description=self._motioninfo.description,
-            Sensitivity=self._motioninfo.sensitivity,
-            OPStatus="true" if self._motioninfo.op_status else "false",
-            Backoff=self._motioninfo.backoff,
-        )
-        if _LOGGER.isEnabledFor(logging.DEBUG):
-            motion_settings = await self.call(
-                "GetMotionDetectorSettings", timeout=DEFAULT_SOAP_TIMEOUT, ModuleID=1
+        if self.device_name == "DCH-S150":
+            await self.call(
+                "SetMotionDetectorSettings",
+                timeout=DEFAULT_SOAP_TIMEOUT,
+                ModuleID=1,
+                NickName=self._device_detection_settings_info.nick_name,
+                Description=self._device_detection_settings_info.description,
+                Sensitivity=self._device_detection_settings_info.sensitivity,
+                OPStatus="true"
+                if self._device_detection_settings_info.op_status
+                else "false",
+                Backoff=self._device_detection_settings_info.backoff,
             )
+        elif self.device_name == "DCH-S160":
+            await self.call(
+                "SetWaterDetectorSettings",
+                timeout=DEFAULT_SOAP_TIMEOUT,
+                ModuleID=1,
+                NickName=self._device_detection_settings_info.nick_name,
+                Description=self._device_detection_settings_info.description,
+                OPStatus="true"
+                if self._device_detection_settings_info.op_status
+                else "false",
+            )
+        else:
+            raise UnsupportedDeviceType(self.device_name)
+
+        if _LOGGER.isEnabledFor(logging.DEBUG):
+            device_settings = self.get_device_detector_settings()
+
             _LOGGER.debug(
-                "Current motion detector settings on the device: %s", motion_settings
+                "Current motion/moisture detector settings on the device: %s",
+                device_settings,
             )
 
     async def login(self):
@@ -348,6 +375,7 @@ class HNAPClient:
             UnableToResolveHost,
             UnableToConnect,
             InvalidDeviceState,
+            UnsupportedDeviceType,
         ):
             raise
 
@@ -428,8 +456,7 @@ class HNAPClient:
                 # We shouldn't be here!
                 self.set_status(HNAPDeviceStatus.UNKNOWN)
                 _LOGGER.info(
-                    "DCH-S150 status is in unknown state %s - shouldn't be making calls.",
-                    self._status,
+                    f"{self.device_name} status is in unknown state {self._status} - shouldn't be making calls."
                 )
                 raise ValueError(
                     "Device status is in unknown state {self._status}- shouldn't be making calls."
@@ -452,7 +479,7 @@ class HNAPClient:
                 result = await self.soap().call(method, timeout, **kwargs)
                 if "ERROR" in result:
                     raise DeviceReturnedError(
-                        f"DCH-S150 device {self.get_name()} returned a server error."
+                        f"{self.device_name} device {self.get_name()} returned a server error."
                     )
             # If we've already wrapped it in one of our exception types, it's good
             except DeviceReturnedError:
@@ -468,7 +495,7 @@ class HNAPClient:
             except xml.parsers.expat.ExpatError as exc:
                 self.set_status(HNAPDeviceStatus.INTERNAL_ERROR)
                 raise GeneralCommunicationError(
-                    "Invalid response received from device.  Perhaps not a DCH-S150?"
+                    "Invalid response received from device.  Perhaps not a DCH-S1x0?"
                 ) from exc
 
             except gaierror as exc:

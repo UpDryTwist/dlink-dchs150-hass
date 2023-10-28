@@ -1,6 +1,6 @@
 {
   "domain": "dchs150_motion",
-  "name": "D-Link DCH-S150 Motion Sensor Integration",
+  "name": "D-Link DCH-S150/DCH-S160 Motion/Water Sensor Integration",
   "documentation": "https://github.com/updrytwist/dlink-dchs150-hass",
   "issue_tracker": "https://github.com/updrytwist/dlink-dchs150-hass/issues",
   "dependencies": [],
@@ -8,6 +8,6 @@
   "codeowners": ["@updrytwist"],
   "requirements": ["xmltodict"],
   "iot_class": "local_polling",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "integration_type": "hub"
 }

@@ -8,8 +8,8 @@ from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from voluptuous import All
 from voluptuous import Length
 
-from .api import DlinkDchs150HassApiClient
-from .api import fill_in_motion
+from .api import DlinkDchHassApiClient
+from .api import fill_in_device_settings
 from .api import fill_in_timezone
 from .const import CONF_BACKOFF
 from .const import CONF_DESCRIPTION
@@ -33,19 +33,20 @@ from .const import CONF_TZ_OFFSET
 from .const import DEVICE_POLLING_FREQUENCY
 from .const import DOMAIN
 from .dch_wifi import AuthenticationError
+from .dch_wifi import DeviceDetectionSettingsInfo
 from .dch_wifi import DeviceReturnedError
 from .dch_wifi import GeneralCommunicationError
 from .dch_wifi import InvalidDeviceState
-from .dch_wifi import MotionInfo
 from .dch_wifi import Rebooting
 from .dch_wifi import UnableToConnect
 from .dch_wifi import UnableToResolveHost
+from .dch_wifi import UnsupportedDeviceType
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 
 
-class DlinkDchs150HassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for dlink_dchs150_hass."""
+class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+    """Config flow for dlink_dch_hass."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
@@ -84,6 +85,8 @@ class DlinkDchs150HassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 self._errors[CONF_HOST] = "unable_to_connect"
             except InvalidDeviceState:
                 self._errors["base"] = "invalid_device_state"
+            except UnsupportedDeviceType:
+                self._errors["base"] = "unsupported_device_type"
 
             return await self._show_config_form(user_input)
 
@@ -92,7 +95,7 @@ class DlinkDchs150HassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
-        return DlinkDchs150HassOptionsFlowHandler(config_entry)
+        return DlinkDchHassOptionsFlowHandler(config_entry)
 
     async def _show_config_form(self, user_input):  # pylint: disable=unused-argument
         """Show the configuration form to edit device connection data."""
@@ -120,40 +123,42 @@ class DlinkDchs150HassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Try to use the credentials.  Will return exception if not so."""
         session = async_create_clientsession(self.hass)
         time_info = fill_in_timezone(self.hass.config.time_zone, None)
-        client = DlinkDchs150HassApiClient(host, pin, session, time_info, None)
+        client = DlinkDchHassApiClient(host, pin, session, time_info, None)
         await client.async_get_data()
 
 
-class DlinkDchs150HassOptionsFlowHandler(config_entries.OptionsFlow):
-    """Config flow options handler for dlink_dchs150_hass."""
+class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
+    """Config flow options handler for dlink_dch_hass."""
 
     def __init__(self, config_entry):
         """Initialize HACS options flow."""
         self.config_entry = config_entry
         self.options = dict(config_entry.options)
         self.defaults = None
-        self.motion_defaults = None
+        self.device_detection_defaults = None
 
     async def async_step_init(self, user_input=None):  # pylint: disable=unused-argument
         """Manage the options."""
         return await self.async_step_user()
 
-    async def load_motion_defaults(self):
+    async def load_device_detection_defaults(self):
         """Load the motion detection defaults"""
         session = async_create_clientsession(self.hass)
         host = self.config_entry.data.get(CONF_HOST)
         pin = self.config_entry.data.get(CONF_PIN)
-        client = DlinkDchs150HassApiClient(host, pin, session, None, None)
-        settings = await client.async_get_motion_detector_settings()
-        _LOGGER.debug("Got motion detector settings of: %s", settings)
-        self.motion_defaults = fill_in_motion(self.config_entry)
-        if not self.motion_defaults:
-            self.motion_defaults = MotionInfo()
-        self.motion_defaults.backoff = int(settings["Backoff"])
-        self.motion_defaults.nick_name = settings["NickName"]
-        self.motion_defaults.description = settings["Description"]
-        self.motion_defaults.sensitivity = int(settings["Sensitivity"])
-        self.motion_defaults.op_status = settings["OPStatus"] != "false"
+        client = DlinkDchHassApiClient(host, pin, session, None, None)
+        settings = await client.async_get_device_detector_settings()
+        _LOGGER.debug("Got device detector settings of: %s", settings)
+        self.device_detection_defaults = fill_in_device_settings(self.config_entry)
+        if not self.device_detection_defaults:
+            self.device_detection_defaults = DeviceDetectionSettingsInfo()
+        if "Backoff" in settings:
+            self.device_detection_defaults.backoff = int(settings["Backoff"])
+        self.device_detection_defaults.nick_name = settings["NickName"]
+        self.device_detection_defaults.description = settings["Description"]
+        if "Sensitivity" in settings:
+            self.device_detection_defaults.sensitivity = int(settings["Sensitivity"])
+        self.device_detection_defaults.op_status = settings["OPStatus"] != "false"
 
     def get_default(self, key):
         """Get the pre-existing option, or look up a default if it doesn't exist."""
@@ -162,11 +167,11 @@ class DlinkDchs150HassOptionsFlowHandler(config_entries.OptionsFlow):
             time_zone_info = fill_in_timezone(self.hass.config.time_zone, None)
             self.defaults = {
                 CONF_INTERVAL: DEVICE_POLLING_FREQUENCY,
-                CONF_BACKOFF: self.motion_defaults.backoff,
-                CONF_SENSITIVITY: self.motion_defaults.sensitivity,
-                CONF_OP_STATUS: self.motion_defaults.op_status,
-                CONF_NICK_NAME: self.motion_defaults.nick_name,
-                CONF_DESCRIPTION: self.motion_defaults.description,
+                CONF_BACKOFF: self.device_detection_defaults.backoff,
+                CONF_SENSITIVITY: self.device_detection_defaults.sensitivity,
+                CONF_OP_STATUS: self.device_detection_defaults.op_status,
+                CONF_NICK_NAME: self.device_detection_defaults.nick_name,
+                CONF_DESCRIPTION: self.device_detection_defaults.description,
                 CONF_NTP_SERVER: time_zone_info.ntp_server,
                 CONF_TZ_OFFSET: time_zone_info.tz_offset,
                 CONF_TZ_DST: time_zone_info.tz_dst,
@@ -196,8 +201,8 @@ class DlinkDchs150HassOptionsFlowHandler(config_entries.OptionsFlow):
                 data=self.options,
             )
 
-        if not self.motion_defaults:
-            await self.load_motion_defaults()
+        if not self.device_detection_defaults:
+            await self.load_device_detection_defaults()
 
         return self.async_show_form(
             step_id="user",

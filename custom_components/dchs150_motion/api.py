@@ -1,6 +1,8 @@
-"""Sample API Client."""
+"""API interface for the DCH-Sx0"""
 import datetime
 import logging
+from typing import Optional
+from typing import Union
 
 import aiohttp
 import homeassistant.util.dt
@@ -26,8 +28,8 @@ from .const import CONF_TZ_OFFSET
 from .const import DEFAULT_BACKOFF_SECONDS
 from .const import DEFAULT_OP_STATUS
 from .const import DEFAULT_SENSITIVITY
+from .dch_wifi import DeviceDetectionSettingsInfo
 from .dch_wifi import HNAPClient
-from .dch_wifi import MotionInfo
 from .dch_wifi import NanoSOAPClient
 from .dch_wifi import TimeInfo
 
@@ -45,23 +47,31 @@ def set_if_set(entry: ConfigEntry, key: str, default):
     return value if value else default
 
 
-def fill_in_motion(entry: ConfigEntry) -> MotionInfo:
-    """Fill in the info we're going to use to set up the device's motion settings"""
+def fill_in_device_settings(
+    entry: ConfigEntry,
+) -> Union[DeviceDetectionSettingsInfo, None]:
+    """Fill in the info we're going to use to set up the device's motion/water settings"""
     if entry.options.get(CONF_BACKOFF):
-        motion_info = MotionInfo()
-        motion_info.backoff = set_if_set(entry, CONF_BACKOFF, DEFAULT_BACKOFF_SECONDS)
-        motion_info.sensitivity = set_if_set(
+        device_settings_info = DeviceDetectionSettingsInfo()
+        device_settings_info.backoff = set_if_set(
+            entry, CONF_BACKOFF, DEFAULT_BACKOFF_SECONDS
+        )
+        device_settings_info.sensitivity = set_if_set(
             entry, CONF_SENSITIVITY, DEFAULT_SENSITIVITY
         )
-        motion_info.op_status = set_if_set(entry, CONF_OP_STATUS, DEFAULT_OP_STATUS)
-        motion_info.nick_name = set_if_set(entry, CONF_NICK_NAME, None)
-        motion_info.description = set_if_set(entry, CONF_DESCRIPTION, None)
-        return motion_info
+        device_settings_info.op_status = set_if_set(
+            entry, CONF_OP_STATUS, DEFAULT_OP_STATUS
+        )
+        device_settings_info.nick_name = set_if_set(entry, CONF_NICK_NAME, None)
+        device_settings_info.description = set_if_set(entry, CONF_DESCRIPTION, None)
+        return device_settings_info
     else:
         return None
 
 
-def fill_in_timezone(time_zone_string: str, entry: ConfigEntry) -> TimeInfo:
+def fill_in_timezone(
+    time_zone_string: str, entry: Optional[ConfigEntry] = None
+) -> TimeInfo:
     """Fill in the info we're going to use to set up the device's time."""
     time_info = TimeInfo()
 
@@ -116,16 +126,16 @@ def fill_in_timezone(time_zone_string: str, entry: ConfigEntry) -> TimeInfo:
     return time_info
 
 
-class DlinkDchs150HassApiClient:
-    """Implementation of the calls to the DCH-S150 API"""
+class DlinkDchHassApiClient:
+    """Implementation of the calls to the DCH-S* API"""
 
     def __init__(
         self,
         host: str,
         pin: str,
         session: aiohttp.ClientSession,
-        time_info: TimeInfo,
-        motion_info: MotionInfo,
+        time_info: Optional[TimeInfo] = None,
+        device_detection_settings_info: Optional[DeviceDetectionSettingsInfo] = None,
     ) -> None:
         """Integration API client for D-Link DCH-S150"""
         self._host = host
@@ -137,10 +147,25 @@ class DlinkDchs150HassApiClient:
         )
 
         self._client = HNAPClient(
-            self._soap, DEFAULT_LOGIN_NAME, pin, time_info, motion_info, loop=None
+            self._soap,
+            DEFAULT_LOGIN_NAME,
+            pin,
+            time_info,
+            device_detection_settings_info,
+            loop=None,
         )
         self._prev_detect_time = None
         self._last_detect_time = None
+
+    @property
+    def device_type(self) -> str:
+        """Return DCH-S150, DCH-S160"""
+        return self._client.device_name
+
+    @property
+    def detection_type(self) -> str:
+        """Return 'motion' or 'water'"""
+        return "water" if self.device_type == "DCH-S160" else "motion"
 
     async def async_get_data(self) -> dict:
         """Get data from the API."""
@@ -155,13 +180,20 @@ class DlinkDchs150HassApiClient:
             "vendor_name": self._client.vendor_name,
         }
 
+    async def get_device_type(self) -> str:
+        """Get the type of device that we are: DCH-S150 or DCH-S160"""
+        if not self._client.device_name:
+            # If not set, force a read
+            await self._client.get_device_settings()
+        return self._client.device_name
+
     async def async_get_device_settings(self) -> dict:
         """Get device settings"""
         return await self._client.get_device_settings()
 
-    async def async_get_motion_detector_settings(self) -> dict:
+    async def async_get_device_detector_settings(self) -> dict:
         """Get motion detector settings"""
-        return await self._client.get_motion_detector_settings()
+        return await self._client.get_device_detector_settings()
 
     async def get_latest_detection(self) -> datetime.date:
         """Get the last motion detected time."""
@@ -178,7 +210,8 @@ class DlinkDchs150HassApiClient:
             )
         if not self._last_detect_time or last_detected != self._last_detect_time:
             _LOGGER.debug(
-                "Detected new motion on %s - was %s now %s",
+                "Detected new %s on %s - was %s now %s",
+                self.detection_type,
                 self._client.get_name(),
                 self._last_detect_time,
                 last_detected,

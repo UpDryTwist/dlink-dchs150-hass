@@ -1,10 +1,10 @@
 {
-  "title": "DLink DCH-S150 Motion Detector",
+  "title": "DLink DCH-S150/DCH-S160 Motion/Water Detector",
   "config": {
     "step": {
       "user": {
-        "title": "D-Link DCH-S150 Motion Detector (custom)",
-        "description": "This is an updated component aiming to support the no-longer-supported D-Link DCH-S150 motion detector.  Feel free to read the source here: https://github.com/updrytwist/dlink-dchs150-hass",
+        "title": "D-Link DCH-S150/DCH-S160 Motion/Water Detector (custom)",
+        "description": "This is an updated component aiming to support the no-longer-supported D-Link DCH-S150 motion detector and the DCH-S160 water detector.  Feel free to read the source here: https://github.com/updrytwist/dlink-dchs150-hass",
         "data": {
           "host": "Host/IP",
           "pin": "PIN (6 digits on back of sensor in tiny print)"
@@ -14,11 +14,12 @@
     "error": {
       "unable_to_resolve_host": "Unable to resolve the host name provided.  Try checking spelling, etc.",
       "authentication_error": "Connected to the device, but it didn't accept the authentication.  Presumably wrong PIN - check back of device.",
-      "general_communication": "Something responded at the device host/IP provided, but not in a way we expect.  Wrong device address (i.e., not a DCH-S150 at that address)?",
-      "device_returned_error": "Device responded and appears to be a DCH-S150, but returned an unknown error.  No idea why.",
+      "general_communication": "Something responded at the device host/IP provided, but not in a way we expect.  Wrong device address (i.e., not a DCH-S150/DCH-S160 at that address)?",
+      "device_returned_error": "Device responded and appears to be a DCH-S150 or DCH-S160, but returned an unknown error.  No idea why.",
       "rebooting": "Device is currently rebooting.  Please try again in about a minute.",
       "unable_to_connect": "Unable to connect to the host/IP provided.  Check entry, ensure device is live and connect to network (try pinging it).",
-      "invalid_device_state": "Encountered an unexpected device state.  May need to restart HASS or this integration."
+      "invalid_device_state": "Encountered an unexpected device state.  May need to restart HASS or this integration.",
+      "unsupported_device_type": "This device type is not supported.  Currently only support DCH-S150 (motion) and DCH-S160 (moisture)."
     },
     "abort": {
       "single_instance_allowed": "Only a single instance is allowed."
@@ -27,7 +28,7 @@
   "options": {
     "step": {
       "user": {
-        "title": "D-Link DCH-S150 Motion Detector Options",
+        "title": "D-Link DCH-S150/DCH-S160 Motion/Water Detector Options",
         "description": "The update interval determines how frequently we poll.  The time zone settings are pushed to the device.  Feel free to read the source here: https://github.com/updrytwist/dlink-dchs150-hass",
         "data": {
           "update_interval": "Update interval (secs) - impacts sys load (bad) and responsiveness (good)",

@@ -3,16 +3,17 @@
 NAME = "DLink DCHS150"
 # This needs to match what's in manifest.json
 DOMAIN = "dchs150_motion"
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 
 ATTRIBUTION = "https://github.com/updrytwist/dlink-dchs150-hass"
 ISSUE_URL = "https://github.com/updrytwist/dlink-dchs150-hass/issues"
 
 # Icons
-ICON = "mdi:motion-sensor"
+MOTION_ICON = "mdi:motion-sensor"
+MOISTURE_ICON = "mdi:water"
 
 # Device classes
-BINARY_SENSOR_DEVICE_CLASS = "motion"
+# BINARY_SENSOR_DEVICE_CLASS = "motion"
 
 # Platforms
 BINARY_SENSOR = "binary_sensor"
@@ -47,7 +48,6 @@ DEFAULT_SENSITIVITY = 90
 DEFAULT_OP_STATUS = True
 DEFAULT_BACKOFF_SECONDS = 30
 
-
 # Rebooting
 REBOOT_SECONDS = 40
 REBOOT_HOUR = 3
@@ -71,7 +71,7 @@ DEFAULT_TZ_DST_END_TIME = "2:00AM"
 
 # Defaults
 DEFAULT_NAME = "dlink_dchs150"
-BINARY_SENSOR_NAME = "dlink_motion_sensor"
+DEFAULT_SENSOR_NAME = "dlink_sensor"
 
 # For state management
 UPDATE_LISTENER_REMOVE = "update_listener_remove"
@@ -82,7 +82,8 @@ STARTUP_MESSAGE = f"""
 {NAME}
 Version: {VERSION}
 This custom integration has been built to support the no-longer-supported
-D-Link DCHS150 motion sensor.  It is not affiliated with D-Link in any way.
+D-Link DCH-S150 motion sensor and DCH-S160 moisture sensor.
+It is not affiliated with D-Link in any way.
 Issues found may be reported here (but no fix promises):
 {ISSUE_URL}
 -------------------------------------------------------------------

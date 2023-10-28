@@ -1,12 +1,12 @@
-"""DlinkDchs150HassEntity class"""
+"""DlinkDchHassEntity class"""
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ATTRIBUTION
 from .const import DOMAIN
 
 
-class DlinkDchs150HassEntity(CoordinatorEntity):
-    """Coordinating entity for DLink DCH-S150"""
+class DlinkDchHassEntity(CoordinatorEntity):
+    """Coordinating entity for DLink DCH-S150 and DCH-S160"""
 
     def __init__(self, coordinator, config_entry):
         super().__init__(coordinator)

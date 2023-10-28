@@ -3,36 +3,44 @@ from datetime import datetime
 from datetime import timedelta
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.binary_sensor import DEVICE_CLASS_MOISTURE
+from homeassistant.components.binary_sensor import DEVICE_CLASS_MOTION
 
-from .const import BINARY_SENSOR_DEVICE_CLASS
-from .const import BINARY_SENSOR_NAME
 from .const import CONF_BACKOFF
 from .const import DEFAULT_BACKOFF_SECONDS
+from .const import DEFAULT_SENSOR_NAME
 from .const import DOMAIN
-from .entity import DlinkDchs150HassEntity
+from .dch_wifi import UnsupportedDeviceType
+from .entity import DlinkDchHassEntity
 
 
 async def async_setup_entry(hass, entry, async_add_devices):
     """Setup binary_sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_devices([DlinkDchs150HassBinarySensor(coordinator, entry)])
+    async_add_devices([DlinkDchHassBinarySensor(coordinator, entry)])
 
 
-class DlinkDchs150HassBinarySensor(DlinkDchs150HassEntity, BinarySensorEntity):
-    """dlink_dchs150_hass binary_sensor class."""
+class DlinkDchHassBinarySensor(DlinkDchHassEntity, BinarySensorEntity):
+    """dlink_DCH_hass_sensor class."""
 
     @property
     def name(self):
         """Return the name of the binary_sensor."""
         name = self.coordinator.data.get("device_name")
         if not name:
-            name = f"{BINARY_SENSOR_NAME}"
+            name = DEFAULT_SENSOR_NAME
         return name
 
     @property
     def device_class(self):
         """Return the class of this binary_sensor."""
-        return BINARY_SENSOR_DEVICE_CLASS
+        device_name = self.coordinator.data.get("device_name")
+        if device_name == "DCH-S150":
+            return DEVICE_CLASS_MOTION
+        elif device_name == "DCH-S160":
+            return DEVICE_CLASS_MOISTURE
+        else:
+            raise UnsupportedDeviceType
 
     @property
     def is_on(self):

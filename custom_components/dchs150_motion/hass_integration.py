@@ -15,8 +15,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from .api import DlinkDchs150HassApiClient
-from .api import fill_in_motion
+from .api import DlinkDchHassApiClient
+from .api import fill_in_device_settings
 from .api import fill_in_timezone
 from .const import BINARY_SENSOR
 from .const import CONF_HOST
@@ -58,12 +58,14 @@ class HassIntegration:
         update_interval = timedelta(seconds=interval)
 
         time_info = fill_in_timezone(hass.config.time_zone, entry)
-        motion_info = fill_in_motion(entry)
+        device_detection_settings_info = fill_in_device_settings(entry)
 
         session = async_get_clientsession(hass)
-        client = DlinkDchs150HassApiClient(host, pin, session, time_info, motion_info)
+        client = DlinkDchHassApiClient(
+            host, pin, session, time_info, device_detection_settings_info
+        )
 
-        coordinator = DlinkDchs150HassDataUpdateCoordinator(
+        coordinator = DlinkDchHassDataUpdateCoordinator(
             hass, client=client, update_interval=update_interval
         )
         await coordinator.async_refresh()
@@ -108,13 +110,13 @@ class HassIntegration:
         await HassIntegration.async_setup_entry(hass, entry)
 
 
-class DlinkDchs150HassDataUpdateCoordinator(DataUpdateCoordinator):
+class DlinkDchHassDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from the API."""
 
     def __init__(
         self,
         hass: HomeAssistant,
-        client: DlinkDchs150HassApiClient,
+        client: DlinkDchHassApiClient,
         update_interval: timedelta,
     ) -> None:
         """Initialize."""
