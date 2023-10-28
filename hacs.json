@@ -1,6 +1,4 @@
 {
   "name": "dchs150_motion",
-  "hacs": "1.6.0",
-  "iot_class": "Cloud Polling",
   "render_readme": true
 }
