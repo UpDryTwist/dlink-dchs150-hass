@@ -202,6 +202,7 @@ class HNAPClient:
         get the device settings."""
         if self._ran_initialization:
             return
+        _LOGGER.debug("Running initialization.")
         settings = await self.get_device_settings()
         self.mac_address = settings["DeviceMacId"]
         self.model_name = settings["ModelName"]
@@ -274,13 +275,14 @@ class HNAPClient:
         if not self._device_detection_settings_info:
             return
         _LOGGER.debug(
-            "Setting device settings for device - %s %s (%s) Sensitive: %s On: %s Backoff %s",
+            "Setting device settings for device - %s %s (%s) Sensitive: %s On: %s Backoff %s Type: %s",
             self.get_name(),
             self._device_detection_settings_info.nick_name,
             self._device_detection_settings_info.description,
             self._device_detection_settings_info.sensitivity,
             self._device_detection_settings_info.op_status,
             self._device_detection_settings_info.backoff,
+            self.device_name,
         )
         if self.device_name == "DCH-S150":
             await self.call(
@@ -307,6 +309,7 @@ class HNAPClient:
                 else "false",
             )
         else:
+            _LOGGER.debug("Device type of %s is not a supported type", self.device_name)
             raise UnsupportedDeviceType(self.device_name)
 
         if _LOGGER.isEnabledFor(logging.DEBUG):

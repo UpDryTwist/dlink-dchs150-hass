@@ -135,4 +135,9 @@ class DlinkDchHassDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             return await self.api.async_get_data()
         except Exception as exception:
+            _LOGGER.debug(
+                "Getting data failed for DCH-Sx0 integration: %s",
+                exception,
+                exc_info=exception,
+            )
             raise UpdateFailed() from exception
