@@ -170,7 +170,13 @@ class DlinkDchHassApiClient:
     @property
     def full_device_name(self) -> str:
         """Long name including IP"""
-        return f"{self._client.device_name}: {self._client.mac_address} at {self._client.url_address}"
+        device_name = (
+            f"{self._client.device_name}: " if self._client.device_name else ""
+        )
+        mac_address = (
+            f"{self._client.mac_address} at " if self._client.mac_address else ""
+        )
+        return f"{device_name}{mac_address}{self._client.url_address}"
 
     @property
     def detection_type(self) -> str:
