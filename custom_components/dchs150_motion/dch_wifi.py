@@ -237,7 +237,7 @@ class HNAPClient:
         """Get the motion or water detection settings from the device"""
         return await self.call(
             "GetWaterDetectorSettings"
-            if self.device_name == "DCH-S160"
+            if self.model_name == "DCH-S160"
             else "GetMotionDetectorSettings",
             timeout=DEFAULT_SOAP_TIMEOUT,
             ModuleID=1,
@@ -282,9 +282,9 @@ class HNAPClient:
             self._device_detection_settings_info.sensitivity,
             self._device_detection_settings_info.op_status,
             self._device_detection_settings_info.backoff,
-            self.device_name,
+            self.model_name,
         )
-        if self.device_name == "DCH-S150":
+        if self.model_name == "DCH-S150":
             await self.call(
                 "SetMotionDetectorSettings",
                 timeout=DEFAULT_SOAP_TIMEOUT,
@@ -297,7 +297,7 @@ class HNAPClient:
                 else "false",
                 Backoff=self._device_detection_settings_info.backoff,
             )
-        elif self.device_name == "DCH-S160":
+        elif self.model_name == "DCH-S160":
             await self.call(
                 "SetWaterDetectorSettings",
                 timeout=DEFAULT_SOAP_TIMEOUT,
@@ -309,8 +309,8 @@ class HNAPClient:
                 else "false",
             )
         else:
-            _LOGGER.debug("Device type of %s is not a supported type", self.device_name)
-            raise UnsupportedDeviceType(self.device_name)
+            _LOGGER.debug("Device type of %s is not a supported type", self.model_name)
+            raise UnsupportedDeviceType(self.model_name)
 
         if _LOGGER.isEnabledFor(logging.DEBUG):
             device_settings = self.get_device_detector_settings()

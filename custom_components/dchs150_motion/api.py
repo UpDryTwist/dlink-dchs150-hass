@@ -160,7 +160,7 @@ class DlinkDchHassApiClient:
     @property
     def device_type(self) -> str:
         """Return DCH-S150, DCH-S160"""
-        return self._client.device_name
+        return self._client.model_name
 
     @property
     def detection_type(self) -> str:
@@ -182,10 +182,10 @@ class DlinkDchHassApiClient:
 
     async def get_device_type(self) -> str:
         """Get the type of device that we are: DCH-S150 or DCH-S160"""
-        if not self._client.device_name:
+        if not self._client.model_name:
             # If not set, force a read
             await self._client.get_device_settings()
-        return self._client.device_name
+        return self._client.model_name
 
     async def async_get_device_settings(self) -> dict:
         """Get device settings"""

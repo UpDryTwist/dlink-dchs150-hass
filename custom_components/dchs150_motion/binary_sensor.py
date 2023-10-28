@@ -34,10 +34,10 @@ class DlinkDchHassBinarySensor(DlinkDchHassEntity, BinarySensorEntity):
     @property
     def device_class(self):
         """Return the class of this binary_sensor."""
-        device_name = self.coordinator.data.get("device_name")
-        if device_name == "DCH-S150":
+        model_name = self.coordinator.data.get("model_name")
+        if model_name == "DCH-S150":
             return DEVICE_CLASS_MOTION
-        elif device_name == "DCH-S160":
+        elif model_name == "DCH-S160":
             return DEVICE_CLASS_MOISTURE
         else:
             raise UnsupportedDeviceType
