@@ -41,7 +41,7 @@ jobs:
           key: dotlocal-${{ runner.os }}-${{ env.PYTHON }}-${{ hashFiles('.github/workflows/tests.yaml') }}
 
       - name: Set up python ${{ env.PYTHON }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON }}
 
