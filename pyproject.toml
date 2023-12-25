@@ -1,0 +1,62 @@
+[xxtool.poetry]
+name = "dlink-dschs150-hass"
+version = "0.1.0"
+description = "HomeAssistant integration for the defunct D-Link DCH-S150 motion sensor"
+authors = ["UpDryTwist <tathamg@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/UpDryTwist/dlink-dchs150-hass"
+documentation = "https://dlink-dchs150-hass.readthedocs.io/en/latest/"
+keywords = ["coolled", "coolledx", "led", "sign", "coolled1248"]
+
+[tool.creosote]
+venvs = [".venv"]
+paths = ["custom_components"]
+deps-file = "pyproject.toml"
+sections = ["tool.poetry.dependencies"]
+
+[tool.codespell]
+ignore-words-list = "hass,HASS"
+# uri-ignore-words-list = ""
+skip = "pyproject.toml,build,dist,venv,.venv,.git,*.png,*.jpg,*.jpeg,*.gif,*.bmp,*.ico,*.svg,*.pyc,*.pyo,*.pyd,*.so,*.dll,*.dylib,*.exe,*.bin,*.hex,*.obj,*.o,*.a,*.lib,*.dll.a,*.db,*.sqlite,*.sqlite3"
+
+[tool.pyright]
+venv = ".venv"
+venvPath = "."
+pythonVersion = "3.11"
+# TODO: fix for earlier Python versions
+# Include this if you're feeling you have too much time on your hands
+# typeCheckingMode = "strict"
+
+[tool.poetry]
+name = "dlink-dchs150-hass"
+version = "0.1.0"
+description = "HomeAssistant module for D-Link DCH-S150 (and related) devices"
+authors = ["UpDryTwist <tathamg@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+# Numpy is driving this (<3.13)
+python = "^3.11,<3.13"
+xmltodict = "^0.13.0"
+aiohttp = "^3.9.1"
+pytz = "^2023.3.post1"
+voluptuous = "^0.13.1"
+homeassistant = "^2023.12.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"
+pre-commit = "^3.6.0"
+ruff = "^0.1.9"
+make = "^0.1.6.post2"
+codespell = "^2.2.6"
+# sphinx = "^7.2.6"
+# sphinx-rtd-theme = "^2.0.0"
+# pytest-homeassistant-custom-component = "^0.1.0"
+# pytest-asyncio = "^0.15.1"
+pytest-homeassistant-custom-component = "^0.13.85"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

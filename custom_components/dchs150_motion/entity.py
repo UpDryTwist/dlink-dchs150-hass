@@ -1,5 +1,8 @@
 """DlinkDchHassEntity class"""
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.entity import DeviceInfo
+
+from typing import Union
 
 from .const import ATTRIBUTION
 from .const import DOMAIN
@@ -18,7 +21,7 @@ class DlinkDchHassEntity(CoordinatorEntity):
         return self.config_entry.entry_id
 
     @property
-    def device_info(self):
+    def device_info(self) -> Union[DeviceInfo, None]:
         return {
             "identifiers": {(DOMAIN, self.unique_id)},
             "name": str(self.coordinator.data.get("device_name")),

@@ -23,7 +23,7 @@
 This is a Home Assistant driver for the D-Link DCH-S150 motion detector, which is no longer
 supported by D-Link. This component does what it can to smack the device into shape -- including
 the ability to set the backoff time (how long it ignores additional motion detections), the ability
-to set the Home Assitant polling time (upgrade from prior components), the ability to fix the time zone
+to set the Home Assistant polling time (upgrade from prior components), the ability to fix the time zone
 settings (important now that D-Link's URLs are no longer any good), the ability to tweak sensitivity,
 and various other improvements.
 

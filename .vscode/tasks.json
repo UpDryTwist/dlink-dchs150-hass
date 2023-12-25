@@ -7,25 +7,5 @@
       "command": "scripts/develop",
       "problemMatcher": []
     }
-    // See:  https://github.com/ludeeus/container/tree/main/container/helpers/common/homeassistant
-    // Don't use the tasks below - they're just remnants
-    // {
-    //   "label": "Run Home Assistant configuration against /config",
-    //   "type": "shell",
-    //   "command": "container check",
-    //   "problemMatcher": []
-    // },
-    // {
-    //   "label": "Upgrade Home Assistant to latest dev",
-    //   "type": "shell",
-    //   "command": "container install",
-    //   "problemMatcher": []
-    // },
-    // {
-    //   "label": "Install a specific version of Home Assistant",
-    //   "type": "shell",
-    //   "command": "container set-version",
-    //   "problemMatcher": []
-    // }
   ]
 }

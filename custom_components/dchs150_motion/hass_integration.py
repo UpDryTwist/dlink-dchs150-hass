@@ -36,9 +36,7 @@ class HassIntegration:
     (In other examples you might find this stuffed into __init__.py)"""
 
     @staticmethod
-    async def async_setup(
-        _hass: HomeAssistant, _config: Config
-    ):  # pylint: disable=unused-argument
+    async def async_setup(_hass: HomeAssistant, _config: Config):  # pylint: disable=unused-argument
         """Set up this integration using YAML is not supported."""
         return True
 
@@ -49,8 +47,8 @@ class HassIntegration:
             hass.data.setdefault(DOMAIN, {})
             _LOGGER.info(STARTUP_MESSAGE)
 
-        host = entry.data.get(CONF_HOST)
-        pin = entry.data.get(CONF_PIN)
+        host = str(entry.data.get(CONF_HOST))
+        pin = str(entry.data.get(CONF_PIN))
         interval = entry.options.get(CONF_INTERVAL)
         if not interval:
             interval = DEVICE_POLLING_FREQUENCY
@@ -76,9 +74,11 @@ class HassIntegration:
 
         hass.data[DOMAIN][entry.entry_id] = coordinator
 
-        await hass.async_add_job(
+        job = hass.async_add_job(
             hass.config_entries.async_forward_entry_setup(entry, BINARY_SENSOR)
         )
+        if job:
+            await job
 
         # If we haven't already, register to get update messages . . . but only once!
         if (

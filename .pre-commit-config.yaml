@@ -1,32 +1,82 @@
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      - id: ruff
+        args: [ --fix, --exit-non-zero-on-fix, --show-fixes ]
+      - id: ruff-format
+
+  #- repo: https://github.com/python/black.git
+  #  rev: 23.12.1
+  #  hooks:
+  #    - id: black
+  #      language_version: python3
+
+  - repo: https://github.com/adamchainz/blacken-docs
+    rev: 1.16.0
+    hooks:
+      - id: blacken-docs
+        additional_dependencies:
+          - "black==23.12.1"
+        args:
+          - "--line-length=88"
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.3.0
+    rev: v4.5.0
     hooks:
       - id: check-added-large-files
+      - id: check-ast
+      - id: check-builtin-literals
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-shebang-scripts-are-executable
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
       - id: check-yaml
+      - id: debug-statements
+      - id: destroyed-symlinks
+      - id: detect-private-key
       - id: end-of-file-fixer
+        exclude: ^LICENSE|\.(html|csv|txt|svg|py|png|gif)$
+      - id: pretty-format-json
+        args: [ "--autofix", "--no-ensure-ascii", "--no-sort-keys" ]
+      - id: requirements-txt-fixer
       - id: trailing-whitespace
-  - repo: local
+        args: [ --markdown-linebreak-ext=md ]
+        exclude: \.(html|svg|png|gif)$
+
+  - repo: https://github.com/fredrikaverpil/creosote.git
+    rev: v3.0.0
     hooks:
-      - id: black
-        name: black
-        entry: black
-        language: system
-        types: [python]
-        require_serial: true
-      - id: flake8
-        name: flake8
-        entry: flake8
-        language: system
-        types: [python]
-        require_serial: true
-      - id: reorder-python-imports
-        name: Reorder python imports
-        entry: reorder-python-imports
-        language: system
-        types: [python]
-        args: [--application-directories=custom_components]
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v2.2.1
+      - id: creosote
+        additional_dependencies:
+          - tomli
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.6
     hooks:
-      - id: prettier
+      - id: codespell
+        additional_dependencies:
+          - tomli
+
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.342
+    hooks:
+      - id: pyright
+
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.10.0
+    hooks:
+      - id: commitlint
+        stages: [ commit-msg ]
+        additional_dependencies: [ "@commitlint/config-conventional" ]
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.6.26
+    hooks:
+      # Note:  this requires that you install actionlint as a system command
+      #        . . . so it's currently only running in the manual checks
+      - id: actionlint-system
+        stages: [ manual ]

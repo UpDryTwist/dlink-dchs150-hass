@@ -2,9 +2,12 @@
 from datetime import datetime
 from datetime import timedelta
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.components.binary_sensor import DEVICE_CLASS_MOISTURE
-from homeassistant.components.binary_sensor import DEVICE_CLASS_MOTION
+from typing import Union
+
+from homeassistant.components.binary_sensor import (
+    BinarySensorEntity,
+    BinarySensorDeviceClass,
+)
 
 from .const import CONF_BACKOFF
 from .const import DEFAULT_BACKOFF_SECONDS
@@ -32,13 +35,13 @@ class DlinkDchHassBinarySensor(DlinkDchHassEntity, BinarySensorEntity):
         return name
 
     @property
-    def device_class(self):
+    def device_class(self) -> Union[BinarySensorDeviceClass, None]:
         """Return the class of this binary_sensor."""
         model_name = self.coordinator.data.get("model_name")
         if model_name == "DCH-S150":
-            return DEVICE_CLASS_MOTION
+            return BinarySensorDeviceClass.MOTION
         elif model_name == "DCH-S160":
-            return DEVICE_CLASS_MOISTURE
+            return BinarySensorDeviceClass.MOISTURE
         else:
             raise UnsupportedDeviceType
 

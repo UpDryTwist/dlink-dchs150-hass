@@ -78,14 +78,15 @@ def fill_in_timezone(
     if time_zone_string:
         tzinfo = homeassistant.util.dt.get_time_zone(time_zone_string)
         t_now = datetime.datetime.now(tzinfo)
-        t_utcoffset = t_now.utcoffset().total_seconds()
+        utc_offset = t_now.utcoffset()
+        t_utcoffset = utc_offset.total_seconds() if utc_offset else 0
 
         tz_info = pytz.timezone(time_zone_string)
         now = pytz.utc.localize(datetime.datetime.utcnow())
         is_dst = now.astimezone(tz_info).dst() != datetime.timedelta(0)
 
         time_info.tz_dst = is_dst
-        time_info.tz_offset = t_utcoffset / (60 * 60)
+        time_info.tz_offset = int(t_utcoffset / (60 * 60))
 
         _LOGGER.debug(
             "Time zone settings: Time string from config = %s, "
@@ -97,8 +98,10 @@ def fill_in_timezone(
         )
     if entry:
         time_info.ntp_server = set_if_set(entry, CONF_NTP_SERVER, time_info.ntp_server)
-        time_info.tz_offset = set_if_set(entry, CONF_TZ_OFFSET, time_info.tz_offset)
-        time_info.tz_dst = set_if_set(entry, CONF_TZ_DST, time_info.tz_dst)
+        time_info.tz_offset = int(
+            set_if_set(entry, CONF_TZ_OFFSET, time_info.tz_offset)
+        )
+        time_info.tz_dst = bool(set_if_set(entry, CONF_TZ_DST, time_info.tz_dst))
         time_info.tz_dst_start_month = set_if_set(
             entry, CONF_TZ_DST_START_MONTH, time_info.tz_dst_start_month
         )
@@ -160,12 +163,12 @@ class DlinkDchHassApiClient:
     @property
     def device_type(self) -> str:
         """Return DCH-S150, DCH-S160"""
-        return self._client.model_name
+        return self._client.model_name or "Unknown"
 
     @property
     def device_name(self) -> str:
         """Return the device name"""
-        return self._client.device_name
+        return self._client.device_name or "Unknown"
 
     @property
     def full_device_name(self) -> str:
@@ -201,7 +204,7 @@ class DlinkDchHassApiClient:
         if not self._client.model_name:
             # If not set, force a read
             await self._client.get_device_settings()
-        return self._client.model_name
+        return self._client.model_name or "Unknown"
 
     async def async_get_device_settings(self) -> dict:
         """Get device settings"""

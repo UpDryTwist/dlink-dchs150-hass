@@ -436,7 +436,12 @@ class HNAPClient:
             raise Rebooting("Device needs reboot - can't make calls.")
         elif self._status == HNAPDeviceStatus.REBOOTING:
             # Get the time since the reboot was initiated
-            reboot_seconds = (datetime.now() - self._rebooted_at).total_seconds()
+
+            reboot_seconds = (
+                (datetime.now() - self._rebooted_at).total_seconds()
+                if self._rebooted_at is not None
+                else 0
+            )
             if reboot_seconds > self._reboot_seconds:
                 _LOGGER.debug(
                     "Rebooted at %s, reboot_seconds: %s, reboot_seconds: %s",

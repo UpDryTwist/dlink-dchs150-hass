@@ -59,7 +59,7 @@ REBOOT_SOAP_TIMEOUT = 60
 # Time Zone Info (until I do it properly - this is Chicago!)
 DEFAULT_NTP_SERVER = "time.google.com"  # Reset this from ntp1.dlink.com!!
 DEFAULT_TZ_OFFSET = -6
-DEFAULT_TZ_DST = "true"
+DEFAULT_TZ_DST = True
 DEFAULT_TZ_DST_START_MONTH = 3
 DEFAULT_TZ_DST_START_WEEK = 2
 DEFAULT_TZ_DST_START_DAY_OF_WEEK = 0

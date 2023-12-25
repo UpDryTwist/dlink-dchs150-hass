@@ -9,16 +9,13 @@ from custom_components.dchs150_motion import (
 from custom_components.dchs150_motion import (
     async_unload_entry,
 )
-from custom_components.dchs150_motion import (
-    DlinkDchs150HassDataUpdateCoordinator,
+from custom_components.dchs150_motion.hass_integration import (
+    DlinkDchHassDataUpdateCoordinator,
 )
 from custom_components.dchs150_motion.const import (
     DOMAIN,
 )
 from homeassistant.exceptions import ConfigEntryNotReady
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from .const import MOCK_CONFIG
 
 
 # We can pass fixtures as defined in conftest.py to tell pytest to use the fixture
@@ -26,10 +23,8 @@ from .const import MOCK_CONFIG
 # Home Assistant using the pytest_homeassistant_custom_component plugin.
 # Assertions allow you to verify that the return value of whatever is on the left
 # side of the assertion matches with the right side.
-async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
+async def test_setup_unload_and_reload_entry(hass, bypass_get_data, config_entry):
     """Test entry setup and unload."""
-    # Create a mock entry so we don't have to go through config flow
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
 
     # Set up the entry and assert that the values set during setup are where we expect
     # them to be. Because we have patched the DlinkDchs150HassDataUpdateCoordinator.async_get_data
@@ -38,7 +33,7 @@ async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
     assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
     assert (
         type(hass.data[DOMAIN][config_entry.entry_id])
-        is DlinkDchs150HassDataUpdateCoordinator
+        is DlinkDchHassDataUpdateCoordinator
     )
 
     # Reload the entry and assert that the data from above is still there
@@ -46,7 +41,7 @@ async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
     assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
     assert (
         type(hass.data[DOMAIN][config_entry.entry_id])
-        is DlinkDchs150HassDataUpdateCoordinator
+        is DlinkDchHassDataUpdateCoordinator
     )
 
     # Unload the entry and verify that the data has been removed
@@ -54,9 +49,8 @@ async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
     assert config_entry.entry_id not in hass.data[DOMAIN]
 
 
-async def test_setup_entry_exception(hass, error_on_get_data):
+async def test_setup_entry_exception(hass, error_on_get_data, config_entry):
     """Test ConfigEntryNotReady when API raises an exception during entry setup."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
 
     # In this case we are testing the condition where async_setup_entry raises
     # ConfigEntryNotReady using the `error_on_get_data` fixture which simulates

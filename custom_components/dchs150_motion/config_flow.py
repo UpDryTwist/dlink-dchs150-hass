@@ -1,6 +1,8 @@
 """Adds config flow for dlink_dchs150_hass."""
 import logging
 
+from typing import Union
+
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
@@ -112,8 +114,8 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_HOST, default=host): str,
-                    vol.Required(CONF_PIN, default=pin): All(str, Length(6)),
+                    vol.Required(CONF_HOST, default=host): str,  # type: ignore
+                    vol.Required(CONF_PIN, default=pin): All(str, Length(6)),  # type: ignore
                 }
             ),
             errors=self._errors,
@@ -130,12 +132,13 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
     """Config flow options handler for dlink_dch_hass."""
 
+    device_detection_defaults: Union[DeviceDetectionSettingsInfo, None] = None
+
     def __init__(self, config_entry):
         """Initialize HACS options flow."""
         self.config_entry = config_entry
         self.options = dict(config_entry.options)
         self.defaults = None
-        self.device_detection_defaults = None
 
     async def async_step_init(self, user_input=None):  # pylint: disable=unused-argument
         """Manage the options."""
@@ -168,6 +171,8 @@ class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
 
         if not self.defaults:
             time_zone_info = fill_in_timezone(self.hass.config.time_zone, None)
+            if not self.device_detection_defaults:
+                self.device_detection_defaults = DeviceDetectionSettingsInfo()
             self.defaults = {
                 CONF_INTERVAL: DEVICE_POLLING_FREQUENCY,
                 CONF_BACKOFF: self.device_detection_defaults.backoff,
@@ -212,63 +217,72 @@ class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        CONF_INTERVAL, default=str(self.get_default(CONF_INTERVAL))
+                        CONF_INTERVAL,
+                        default=str(self.get_default(CONF_INTERVAL)),  # type: ignore
                     ): str,
                     vol.Required(
-                        CONF_BACKOFF, default=self.get_default(CONF_BACKOFF)
+                        CONF_BACKOFF,
+                        default=self.get_default(CONF_BACKOFF),  # type: ignore
                     ): int,
                     vol.Required(
-                        CONF_SENSITIVITY, default=self.get_default(CONF_SENSITIVITY)
+                        CONF_SENSITIVITY,
+                        default=self.get_default(CONF_SENSITIVITY),  # type: ignore
                     ): int,
                     vol.Required(
-                        CONF_OP_STATUS, default=self.get_default(CONF_OP_STATUS)
+                        CONF_OP_STATUS,
+                        default=self.get_default(CONF_OP_STATUS),  # type: ignore
                     ): bool,
                     vol.Required(
-                        CONF_NICK_NAME, default=self.get_default(CONF_NICK_NAME)
+                        CONF_NICK_NAME,
+                        default=self.get_default(CONF_NICK_NAME),  # type: ignore
                     ): str,
                     vol.Required(
-                        CONF_DESCRIPTION, default=self.get_default(CONF_DESCRIPTION)
+                        CONF_DESCRIPTION,
+                        default=self.get_default(CONF_DESCRIPTION),  # type: ignore
                     ): str,
                     vol.Required(
-                        CONF_NTP_SERVER, default=self.get_default(CONF_NTP_SERVER)
+                        CONF_NTP_SERVER,
+                        default=self.get_default(CONF_NTP_SERVER),  # type: ignore
                     ): str,
                     vol.Required(
-                        CONF_TZ_OFFSET, default=self.get_default(CONF_TZ_OFFSET)
+                        CONF_TZ_OFFSET,
+                        default=self.get_default(CONF_TZ_OFFSET),  # type: ignore
                     ): int,
                     vol.Required(
-                        CONF_TZ_DST, default=self.get_default(CONF_TZ_DST)
+                        CONF_TZ_DST,
+                        default=self.get_default(CONF_TZ_DST),  # type: ignore
                     ): bool,
                     vol.Required(
                         CONF_TZ_DST_START_MONTH,
-                        default=self.get_default(CONF_TZ_DST_START_MONTH),
+                        default=self.get_default(CONF_TZ_DST_START_MONTH),  # type: ignore
                     ): int,
                     vol.Required(
                         CONF_TZ_DST_START_WEEK,
-                        default=self.get_default(CONF_TZ_DST_START_WEEK),
+                        default=self.get_default(CONF_TZ_DST_START_WEEK),  # type: ignore
                     ): int,
                     vol.Required(
                         CONF_TZ_DST_START_DAY_OF_WEEK,
-                        default=self.get_default(CONF_TZ_DST_START_DAY_OF_WEEK),
+                        default=self.get_default(CONF_TZ_DST_START_DAY_OF_WEEK),  # type: ignore
                     ): int,
                     vol.Required(
                         CONF_TZ_DST_START_TIME,
-                        default=self.get_default(CONF_TZ_DST_START_TIME),
+                        default=self.get_default(CONF_TZ_DST_START_TIME),  # type: ignore
                     ): str,
                     vol.Required(
                         CONF_TZ_DST_END_MONTH,
-                        default=self.get_default(CONF_TZ_DST_END_MONTH),
+                        default=self.get_default(CONF_TZ_DST_END_MONTH),  # type: ignore
                     ): int,
                     vol.Required(
                         CONF_TZ_DST_END_WEEK,
-                        default=self.get_default(CONF_TZ_DST_END_WEEK),
+                        default=self.get_default(CONF_TZ_DST_END_WEEK),  # type: ignore
                     ): int,
                     vol.Required(
                         CONF_TZ_DST_END_DAY_OF_WEEK,
-                        default=self.get_default(CONF_TZ_DST_END_DAY_OF_WEEK),
+                        default=self.get_default(CONF_TZ_DST_END_DAY_OF_WEEK),  # type: ignore
                     ): int,
                     vol.Required(
                         CONF_TZ_DST_END_TIME,
-                        default=self.get_default(CONF_TZ_DST_END_TIME),
+                        default=self.get_default(CONF_TZ_DST_END_TIME),  # type: ignore
                     ): str,
                 }
             ),
