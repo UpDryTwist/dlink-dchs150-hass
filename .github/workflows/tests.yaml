@@ -67,7 +67,7 @@ jobs:
 
       - name: Check tests folder existence
         id: check_test_files
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3
         with:
           files: "tests"
 
