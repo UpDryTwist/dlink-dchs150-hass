@@ -85,13 +85,15 @@ Here are some parameters you can tinker with:
 
 If for some reason you have a DCH-S150 that you never configured, or if you have to
 factory-reset your device (hopefully not because you were futzing with parameters with this
-component!), then you can check out my script [here](https://raw.githubusercontent.com/UpDryTwist/defogger-dch-s150/master/dch-wifi.py)
+component!), then you can check out my script [here](./dch-wifi.py)
 
 - You can probably ignore the rest of the project it’s in. I initially cloned bmork’s cool DCS-8000LH defogger (i.e., cloud remover) project, and started tinkering with that, until I remembered that I’d never been successful setting up my devices using Bluetooth from my phone – so I never got the BTLE stuff to work – and, frankly, you don’t need to.
 
 - You need to connect your wifi to the access point the device advertises. Afterwards, it’ll probably show up at IP 192.168.0.60. Make sure you can access that cleanly before anything else (you can go try logging in at that IP - won’t accomplish much, but proves you can get there). I do all this from a Linux box - that's probably the easiest way.
 
 - In theory, this code supports both password-protected wi-fi and open wi-fi. I wrote all the code to work with a password, and debugged it through to the point that the D-Link device was accepting my requests without error, but not connecting to my network . . . and then I finally remembered that I had to set up a whole separate 2.4Ghz open network (filtered by MAC address) for these devices, as they didn’t like connecting to my main network. SO . . . if your network is password protected, this may or may not work for you.
+
+  - If your network is password protected, there is a workaround that can be currently done to make this work. Open a browser window directed to the IP of the sensor (most likely 192.168.0.60) and then open Inspect Element. Within Inspect Element there should be a way to change Local Storage items, we are interested in the Private Key (within Chrome, this is in the Application tab, Local Storage -> http://192.168.0.60 -> PrivateKey). Run the python script, then once reaching the "Enter key:" section of the script, copy the printed private key into the PrivateKey section of Inspect Element and then proceed to run `AES_Encrypt128("YOUR_WIFI_PASSWORD")` in the console of Inspect Element. Copy the printed key back into the python script and hit enter. This should then send the correct key into the sensor device. Note that taking to long to do this process sometimes caused issues and needing to restart the process.
 
 ## Contributions are welcome!
 
