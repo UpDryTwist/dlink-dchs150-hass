@@ -7,7 +7,7 @@ https://github.com/updrytwist/dlink-dchs150-hass
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import Config
+from homeassistant.core_config import Config
 from homeassistant.core import HomeAssistant
 
 from .hass_integration import HassIntegration

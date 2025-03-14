@@ -4,11 +4,12 @@ Custom integration to integrate dlink_dchs150_hass with Home Assistant.
 For more details about this integration, please refer to
 https://github.com/updrytwist/dlink-dchs150-hass
 """
+from functools import partial
 import logging
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import Config
+from homeassistant.core_config import Config
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -55,7 +56,7 @@ class HassIntegration:
         interval = float(interval)
         update_interval = timedelta(seconds=interval)
 
-        time_info = fill_in_timezone(hass.config.time_zone, entry)
+        time_info = await hass.async_add_executor_job(partial(fill_in_timezone, time_zone_string=hass.config.time_zone, entry=entry))
         device_detection_settings_info = fill_in_device_settings(entry)
 
         session = async_get_clientsession(hass)
@@ -74,8 +75,8 @@ class HassIntegration:
 
         hass.data[DOMAIN][entry.entry_id] = coordinator
 
-        job = hass.async_add_job(
-            hass.config_entries.async_forward_entry_setup(entry, BINARY_SENSOR)
+        job = hass.async_create_task(
+            hass.config_entries.async_forward_entry_setups(entry, [BINARY_SENSOR])
         )
         if job:
             await job
