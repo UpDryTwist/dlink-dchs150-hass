@@ -56,7 +56,11 @@ class HassIntegration:
         interval = float(interval)
         update_interval = timedelta(seconds=interval)
 
-        time_info = await hass.async_add_executor_job(partial(fill_in_timezone, time_zone_string=hass.config.time_zone, entry=entry))
+        time_info = await hass.async_add_executor_job(
+            partial(
+                fill_in_timezone, time_zone_string=hass.config.time_zone, entry=entry
+            )
+        )
         device_detection_settings_info = fill_in_device_settings(entry)
 
         session = async_get_clientsession(hass)
