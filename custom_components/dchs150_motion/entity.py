@@ -1,6 +1,6 @@
 """DlinkDchHassEntity class"""
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from typing import Union
 
