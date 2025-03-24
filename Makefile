@@ -23,10 +23,14 @@ help:
 	@echo "  check             to run pre-commit checks"
 	@echo "  commit-ready      to run pre-commit checks and unit tests"
 	@echo "  full-commit-ready to run pre-commit checks, unit tests, and bump version"
+    @echo "  fast-build        to build with just unit tests and version bump"
 	@echo "  max-build         to run a complete dependencies refresh, full build, and docker build/publish"
+    @echo "  fast-docker-build to run the minimal docker build and publish"
+    @echo "  publish-to-pypi   to publish to PyPI"
 	@echo "  autoupdate        to update dependencies"
 	@echo "  forced-update     to force update dependencies (clear Poetry cache)"
-	@echo "  template-update   to run the copier update"
+	@echo "  template-update   to run the copier update (latest template release)"
+	@echo "  template-update-tip   to run the copier update (latest template tip)"
 	@echo "  check-uncommitted to check for uncommitted changes in Git"
 	@echo "  commit-and-tag-release    to commit and tag the release"
 	@echo "  build-and-release-patch   to run the full build and release a patch"
@@ -43,13 +47,13 @@ poetry-config:
 	@poetry config virtualenvs.path .venv
 
 system-requirements-install:
-	@winget install rhysd.actionlint koalaman.shellcheck mvdan.shfmt Gitleaks.Gitleaks Thoughtworks.Talisman waterlan.dos2unix
+	@winget install rhysd.actionlint koalaman.shellcheck mvdan.shfmt Gitleaks.Gitleaks Thoughtworks.Talisman waterlan.dos2unix GitHub.cli
 
 install:
 	@poetry install
 	@poetry update
 
-autoupdate:  template-update
+autoupdate:
 	@poetry run pre-commit autoupdate
 	@poetry update
 
@@ -63,10 +67,13 @@ add-to-git:
 	@git add .
 	@git add --chmod=+x run_scripts/*.sh
 	@git commit -m "Initial commit from Copier template"
+	@git config --global --add safe.directory $(CURDIR)
 	@poetry run pre-commit install
 
 add-to-github:
-	@git remote add origin https://github.com/UpDryTwist/dlink_dschs150_hass.git
+	@gh repo create dlink-dschs150-hass --public --source=.
+	@git branch -M main
+	@git remote add origin https://github.com/UpDryTwist/dlink-dschs150-hass.git
 	@git push -u origin main
 
 first-make: install add-to-git autoupdate full-commit-ready
@@ -153,6 +160,8 @@ full-build: full-commit-ready version-build
 
 max-build: autoupdate full-build docker-build
 
+fast-docker-build: just-unit bump-version-build docker-publish-one
+
 check-uncommitted:
 	@if [ -n "$(shell git status --porcelain)" ]; then echo "Uncommitted changes in Git"; git status --short; exit 1; fi
 
@@ -178,3 +187,6 @@ build-and-release-major: pre-build-and-release-version bump-version-major post-b
 
 template-update:
 	@copier update --trust --defaults --conflict inline
+
+template-update-tip:
+	@copier update --trust --defaults --conflict inline --vcs-ref=HEAD

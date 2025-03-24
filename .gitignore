@@ -134,5 +134,8 @@ cython_debug/
 /testresults.xml
 /docs/generated/
 
-# Debugging area
+# General other and local configuration
+pythonenv*
+.storage
+.cookiecutter.json
 config
