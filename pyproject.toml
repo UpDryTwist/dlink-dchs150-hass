@@ -1,61 +1,67 @@
-[xxtool.poetry]
-name = "dlink-dschs150-hass"
-version = "0.1.0"
-description = "HomeAssistant integration for the defunct D-Link DCH-S150 motion sensor"
+[tool.poetry]
+name = "D-Link DCH-S150 HomeAssistant Integration"
+version = "0.2.0-dev0"
+description = "HomeAssistant integration for the defunct D-Link DCH-S150 motion sensor (and related devices)"
 authors = ["UpDryTwist <tathamg@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/UpDryTwist/dlink-dchs150-hass"
-documentation = "https://dlink-dchs150-hass.readthedocs.io/en/latest/"
-keywords = ["coolled", "coolledx", "led", "sign", "coolled1248"]
+repository = "https://github.com/UpDryTwist/dlink-dschs150-hass"
+documentation = "https://dlink-dschs150-hass.readthedocs.io/en/latest/"
+keywords = ["dlink_dschs150_hass"]
+homepage = "https://github.com/UpDryTwist/dlink-dschs150-hass"
+packages = [ { include = "custom_components", from = "src" } ]
+
+[tool.bandit]
+exclude_dirs = ["tests", "docs", "examples", ".venv", "dist", ".ruff_cache", ".github"]
 
 [tool.creosote]
 venvs = [".venv"]
-paths = ["custom_components"]
+paths = ["src", "tests", "utils"]
 deps-file = "pyproject.toml"
 sections = ["tool.poetry.dependencies"]
 
 [tool.codespell]
-ignore-words-list = "hass,HASS"
-# uri-ignore-words-list = ""
-skip = "pyproject.toml,build,dist,venv,.venv,.git,*.png,*.jpg,*.jpeg,*.gif,*.bmp,*.ico,*.svg,*.pyc,*.pyo,*.pyd,*.so,*.dll,*.dylib,*.exe,*.bin,*.hex,*.obj,*.o,*.a,*.lib,*.dll.a,*.db,*.sqlite,*.sqlite3"
+ignore-words-list = "D-Link,DCH-S150,hass,HASS,HomeAssistant,THIRDPARTY"
+uri-ignore-words-list = "Classess"
+skip = "pyproject.toml,build,dist,.venv,.git,*.png,*.jpg,*.jpeg,*.gif,*.bmp,*.ico,*.svg,*.pyc,*.pyo,*.pyd,*.so,*.dll,*.dylib,*.exe,*.bin,*.hex,*.obj,*.o,*.a,*.lib,*.dll.a,*.db,*.sqlite,*.sqlite3"
+
+[tool.isort]
+profile = "black"
 
 [tool.pyright]
 venv = ".venv"
 venvPath = "."
-pythonVersion = "3.11"
+pythonVersion = "3.13"
 # TODO: fix for earlier Python versions
 # Include this if you're feeling you have too much time on your hands
 # typeCheckingMode = "strict"
 
-[tool.poetry]
-name = "dlink-dchs150-hass"
-version = "0.1.0"
-description = "HomeAssistant module for D-Link DCH-S150 (and related) devices"
-authors = ["UpDryTwist <tathamg@gmail.com>"]
-license = "MIT"
-readme = "README.md"
-
 [tool.poetry.dependencies]
-# Numpy is driving this (<3.13)
-python = "^3.11,<3.13"
+# Numpy may require < 3.13
+# Bleak as of this moment requires < 3.14
+python = ">=3.13,<3.14"
 xmltodict = "^0.13.0"
-aiohttp = "^3.9.1"
-pytz = "^2023.3.post1"
-voluptuous = "^0.13.1"
-homeassistant = "^2023.12.3"
+aiohttp = "^3.11.13"
+pytz = "^2025.1"
+voluptuous = "^0.15.2"
+homeassistant = "^2025.2.5"
+defusedxml = "^0.7.1"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
-pre-commit = "^3.6.0"
-ruff = "^0.1.9"
+poetry = "^1.7.1"
+pytest = ">=7.4.3,<9.0.0"
+pre-commit = "^4.0.1"
+ruff = "^0.8.0"
+black = "^24.10.0"
 make = "^0.1.6.post2"
 codespell = "^2.2.6"
-# sphinx = "^7.2.6"
-# sphinx-rtd-theme = "^2.0.0"
-# pytest-homeassistant-custom-component = "^0.1.0"
-# pytest-asyncio = "^0.15.1"
-pytest-homeassistant-custom-component = "^0.13.85"
+sphinx = ">=7.2.6,<9.0.0"
+sphinx-rtd-theme = "^3.0.2"
+pyright = "^1.1.390"
+pytest-cov = "^6.0.0"
+bump-my-version = "^0.32.1"
+copier = "^9.5.0"
+pytest-homeassistant-custom-component = "^0.13.218"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,0 +1,14 @@
+# Changes here will be overwritten by Copier
+_commit: v0.0.1
+_src_path: https://github.com/UpDryTwist/stock-python-template.git
+author_email: tathamg@gmail.com
+author_name: UpDryTwist
+docker_project: dlink-dschs150-hass
+project_description: HomeAssistant integration for the defunct D-Link DCH-S150 motion
+    sensor
+project_name: D-Link DCH-S150 HomeAssistant Integration
+project_slug: dlink_dschs150_hass
+python_package: dlink_dschs150_hass
+python_package_command_line_name: ''
+python_version: '3.11'
+repository_name: dlink-dschs150-hass

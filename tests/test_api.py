@@ -1,9 +1,15 @@
 """Tests for dlink_dchs150_hass api."""
 
+from _pytest.logging import LogCaptureFixture
+from homeassistant.core import HomeAssistant
 
-async def test_api(hass, aioclient_mock, caplog):
+
+async def test_api(
+    _hass: HomeAssistant,  # noqa: PT019
+    _aioclient_mock,  # noqa: PT019 ANN001
+    _caplog: LogCaptureFixture,  # noqa: PT019
+) -> None:
     """Test API calls."""
-
     # To test the api submodule, we first create an instance of our API client
     # api = DlinkDchHassApiClient("test", "test", async_get_clientsession(hass))
 

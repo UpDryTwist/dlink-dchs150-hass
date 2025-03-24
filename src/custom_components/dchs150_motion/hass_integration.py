@@ -4,44 +4,45 @@ Custom integration to integrate dlink_dchs150_hass with Home Assistant.
 For more details about this integration, please refer to
 https://github.com/updrytwist/dlink-dchs150-hass
 """
+
 import logging
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import Config
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.helpers.update_coordinator import UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import DlinkDchHassApiClient
-from .api import fill_in_device_settings
-from .api import fill_in_timezone
-from .const import BINARY_SENSOR
-from .const import CONF_HOST
-from .const import CONF_INTERVAL
-from .const import CONF_PIN
-from .const import DEVICE_POLLING_FREQUENCY
-from .const import DOMAIN
-from .const import STARTUP_MESSAGE
-from .const import UPDATE_LISTENER_REMOVE
+from .api import DlinkDchHassApiClient, fill_in_device_settings, fill_in_timezone
+from .const import (
+    BINARY_SENSOR,
+    CONF_HOST,
+    CONF_INTERVAL,
+    CONF_PIN,
+    DEVICE_POLLING_FREQUENCY,
+    DOMAIN,
+    STARTUP_MESSAGE,
+    UPDATE_LISTENER_REMOVE,
+)
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 _PACKAGE_LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 class HassIntegration:
-    """Implements the integration methods for HASS.
-    (In other examples you might find this stuffed into __init__.py)"""
+    """
+    Implements the integration methods for HASS.
+    In other examples you might find this stuffed into __init__.py.
+    """
 
     @staticmethod
-    async def async_setup(_hass: HomeAssistant, _config: Config):  # pylint: disable=unused-argument
+    async def async_setup(_hass: HomeAssistant) -> bool:  # pylint: disable=unused-argument
         """Set up this integration using YAML is not supported."""
         return True
 
     @staticmethod
-    async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         """Set up this integration using UI."""
         if hass.data.get(DOMAIN) is None:
             hass.data.setdefault(DOMAIN, {})
@@ -60,11 +61,17 @@ class HassIntegration:
 
         session = async_get_clientsession(hass)
         client = DlinkDchHassApiClient(
-            host, pin, session, time_info, device_detection_settings_info
+            host,
+            pin,
+            session,
+            time_info,
+            device_detection_settings_info,
         )
 
         coordinator = DlinkDchHassDataUpdateCoordinator(
-            hass, client=client, update_interval=update_interval
+            hass,
+            client=client,
+            update_interval=update_interval,
         )
         await coordinator.async_refresh()
 
@@ -75,7 +82,7 @@ class HassIntegration:
         hass.data[DOMAIN][entry.entry_id] = coordinator
 
         job = hass.async_add_job(
-            hass.config_entries.async_forward_entry_setup(entry, BINARY_SENSOR)
+            hass.config_entries.async_forward_entry_setup(entry, BINARY_SENSOR),
         )
         if job:
             await job
@@ -86,7 +93,7 @@ class HassIntegration:
             or not hass.data[DOMAIN][UPDATE_LISTENER_REMOVE]
         ):
             hass.data[DOMAIN][UPDATE_LISTENER_REMOVE] = entry.add_update_listener(
-                HassIntegration.async_reload_entry
+                HassIntegration.async_reload_entry,
             )
 
         return True
@@ -96,7 +103,8 @@ class HassIntegration:
         """Handle removal of an entry."""
         # coordinator = hass.data[DOMAIN][entry.entry_id]
         unloaded = await hass.config_entries.async_forward_entry_unload(
-            entry, BINARY_SENSOR
+            entry,
+            BINARY_SENSOR,
         )
         if unloaded:
             hass.data[DOMAIN].pop(entry.entry_id)
@@ -123,14 +131,19 @@ class DlinkDchHassDataUpdateCoordinator(DataUpdateCoordinator):
         self.api = client
 
         _LOGGER.debug(
-            "Setting up %s with update interval of %s seconds", DOMAIN, update_interval
+            "Setting up %s with update interval of %s seconds",
+            DOMAIN,
+            update_interval,
         )
 
         super().__init__(
-            hass, _PACKAGE_LOGGER, name=DOMAIN, update_interval=update_interval
+            hass,
+            _PACKAGE_LOGGER,
+            name=DOMAIN,
+            update_interval=update_interval,
         )
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> dict:
         """Update data via library."""
         try:
             return await self.api.async_get_data()

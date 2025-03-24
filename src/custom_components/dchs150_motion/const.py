@@ -1,4 +1,5 @@
 """Constants for dlink_dchs150_hass."""
+
 # Base component constants
 NAME = "DLink DCHS150"
 # This needs to match what's in manifest.json

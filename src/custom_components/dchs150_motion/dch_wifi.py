@@ -1,44 +1,49 @@
-"""Implements HNAP connectivity to a D-Link DCH-S150"""
+"""Implements HNAP connectivity to a D-Link DCH-S150."""
+
 # Use the project defogger-dch-s150 to connect your DCH-S150
 # to your wifi AP now that D-Link doesn't work.
 # This contains code derived directly from:
 #    https://github.com/postlund/dlink_hnap/blob/master/custom_components/dlink_hnap/dlink.py
 # Also particular thanks to:
 #    https://wiki.elvis.science/index.php?title=Examination_of_mydlink%E2%84%A2_home_devices
+from __future__ import annotations
+
 import asyncio
 import hmac
 import logging
-import xml
-import xml.etree.ElementTree as ET
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from enum import Enum
 from io import BytesIO
 from socket import gaierror
-from typing import Optional
+from typing import Any, ClassVar
+from xml.etree.ElementTree import Element, ElementTree, ParseError  # nosec B405
 
 import aiohttp
+import defusedxml.ElementTree as DET  # noqa: N814
+import homeassistant.util.dt
 import xmltodict
 from aiohttp.client_exceptions import ClientConnectorError
 
-from .const import DEFAULT_BACKOFF_SECONDS
-from .const import DEFAULT_NTP_SERVER
-from .const import DEFAULT_OP_STATUS
-from .const import DEFAULT_SENSITIVITY
-from .const import DEFAULT_SOAP_TIMEOUT
-from .const import DEFAULT_TZ_DST
-from .const import DEFAULT_TZ_DST_END_DAY_OF_WEEK
-from .const import DEFAULT_TZ_DST_END_MONTH
-from .const import DEFAULT_TZ_DST_END_TIME
-from .const import DEFAULT_TZ_DST_END_WEEK
-from .const import DEFAULT_TZ_DST_START_DAY_OF_WEEK
-from .const import DEFAULT_TZ_DST_START_MONTH
-from .const import DEFAULT_TZ_DST_START_TIME
-from .const import DEFAULT_TZ_DST_START_WEEK
-from .const import DEFAULT_TZ_OFFSET
-from .const import REBOOT_HOUR
-from .const import REBOOT_SECONDS
-from .const import REBOOT_SOAP_TIMEOUT
+from .const import (
+    DEFAULT_BACKOFF_SECONDS,
+    DEFAULT_NTP_SERVER,
+    DEFAULT_OP_STATUS,
+    DEFAULT_SENSITIVITY,
+    DEFAULT_SOAP_TIMEOUT,
+    DEFAULT_TZ_DST,
+    DEFAULT_TZ_DST_END_DAY_OF_WEEK,
+    DEFAULT_TZ_DST_END_MONTH,
+    DEFAULT_TZ_DST_END_TIME,
+    DEFAULT_TZ_DST_END_WEEK,
+    DEFAULT_TZ_DST_START_DAY_OF_WEEK,
+    DEFAULT_TZ_DST_START_MONTH,
+    DEFAULT_TZ_DST_START_TIME,
+    DEFAULT_TZ_DST_START_WEEK,
+    DEFAULT_TZ_OFFSET,
+    REBOOT_HOUR,
+    REBOOT_SECONDS,
+    REBOOT_SOAP_TIMEOUT,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,13 +51,13 @@ ACTION_BASE_URL = "http://purenetworks.com/HNAP1/"
 DEFAULT_LOGIN_NAME = "Admin"
 
 
-def str2hexstr(origin):
+def str2hexstr(origin: str) -> str:
     """Convert a string to a hex string."""
     # pylint: disable=consider-using-f-string
-    return "".join(["{:x}".format(ord(i)) for i in origin])
+    return "".join([f"{ord(i):x}" for i in origin])
 
 
-def _hmac(key, message):
+def _hmac(key: str, message: str) -> str:
     """Calculate HMAC-MD5 hash."""
     encoded_key = key.encode("utf-8")
     encoded_msg = message.encode("utf-8")
@@ -66,32 +71,31 @@ class AuthenticationError(Exception):
 
 
 class GeneralCommunicationError(Exception):
-    """Thrown when communication with device fails,
-    probably because an invalid form to the response."""
+    """Thrown when communication with device fails, probably because an invalid form to the response."""
 
 
 class DeviceReturnedError(Exception):
     """Device specifically returned an ERROR response, in its normal JSON format."""
 
 
-class Rebooting(Exception):
+class RebootingError(Exception):
     """Thrown when the device is rebooting."""
 
 
-class UnableToResolveHost(Exception):
-    """Unable to resolve the hostname"""
+class UnableToResolveHostError(Exception):
+    """Unable to resolve the hostname."""
 
 
-class UnableToConnect(Exception):
+class UnableToConnectError(Exception):
     """Unable to connect to the supplied host/IP."""
 
 
-class InvalidDeviceState(Exception):
+class InvalidDeviceStateError(Exception):
     """For some reason we're in an invalid state.  Hunh."""
 
 
-class UnsupportedDeviceType(Exception):
-    """A device type we've never seen"""
+class UnsupportedDeviceTypeError(Exception):
+    """A device type we've never seen."""
 
 
 class HNAPDeviceStatus(Enum):
@@ -109,7 +113,7 @@ class HNAPDeviceStatus(Enum):
 
 
 class TimeInfo:
-    """Structure for passing around the time info for resetting the device"""
+    """Structure for passing around the time info for resetting the device."""
 
     ntp_server = DEFAULT_NTP_SERVER
     tz_offset = DEFAULT_TZ_OFFSET
@@ -125,7 +129,7 @@ class TimeInfo:
 
 
 class DeviceDetectionSettingsInfo:
-    """Structure for passing around motion detection / water settings info"""
+    """Structure for passing around motion detection / water settings info."""
 
     backoff = DEFAULT_BACKOFF_SECONDS  # Only for motion detector
     sensitivity = DEFAULT_SENSITIVITY  # Only for motion detector
@@ -134,18 +138,114 @@ class DeviceDetectionSettingsInfo:
     description = None
 
 
+class NanoSOAPClient:
+    """Basic SOAP client."""
+
+    BASE_NS: ClassVar[dict[str, str]] = {
+        "xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
+        "xmlns:xsd": "http://www.w3.org/2001/XMLSchema",
+        "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    }
+    ACTION_NS: ClassVar[dict[str, str]] = {"xmlns": "http://purenetworks.com/HNAP1/"}
+
+    def __init__(
+        self,
+        address: str,
+        action: str,
+        loop: asyncio.EventLoop | None = None,
+        session: aiohttp.ClientSession | None = None,
+    ) -> None:
+        """Initialize a new NanoSOAPClient instance."""
+        self.address = f"http://{address}/HNAP1"
+        self.action = action
+        self.loop = loop or asyncio.get_event_loop()
+        self.session = session or aiohttp.ClientSession(loop=loop)
+        self.headers = {}
+
+    def _generate_request_xml_old(self, method: str, **kwargs: dict[str, Any]) -> str:
+        """Generate a SOAP request."""
+        body = Element("soap:Body")
+        action = Element(method, self.ACTION_NS)
+        body.append(action)
+
+        for param, value in kwargs.items():
+            element = Element(param)
+            if isinstance(value, str) and len(value) > 0 and value[0] == "<":  # pyright: ignore[reportArgumentType]
+                # Assume it's raw XML
+                sub = DET.fromstring(value)
+                element.append(sub)
+            else:
+                element.text = str(value)
+            action.append(element)
+
+        envelope = Element("soap:Envelope", self.BASE_NS)
+        envelope.append(body)
+
+        file_handle = BytesIO()
+        tree = ElementTree(envelope)
+        tree.write(file_handle, encoding="utf-8", xml_declaration=True)
+
+        return file_handle.getvalue().decode("utf-8")
+
+    def _generate_request_xml(self, method: str, **kwargs: dict[str, Any]) -> str:
+        """Generate a SOAP request."""
+        parameters = ""
+        for param, value in kwargs.items():
+            parameters += f"<{param}>{value}</{param}>"
+
+        return f"""<?xml version ="1.0" encoding="utf-8"?>
+          <soap:Envelope
+          xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+            <soap:Body>
+              <{method} xmlns="http://purenetworks.com/HNAP1/">
+                {parameters}
+              </{method}>
+            </soap:Body>
+          </soap:Envelope>
+        """
+
+    async def call(
+        self,
+        method: str,
+        timeout: int = 10,
+        **kwargs: dict[str, Any],
+    ) -> dict:
+        """Call a SOAP method."""
+        request_xml = self._generate_request_xml(method, **kwargs)
+
+        headers = self.headers.copy()
+        headers["SOAPAction"] = f'"{self.action}{method}"'
+
+        resp = await self.session.post(
+            self.address,
+            data=request_xml,
+            headers=headers,
+            timeout=aiohttp.ClientTimeout(total=timeout),
+        )
+        text = await resp.text()
+        parsed = xmltodict.parse(text)
+        if "soap:Envelope" not in parsed:
+            _LOGGER.error("parsed: %s", str(parsed))
+            raise GeneralCommunicationError("Received a bad response from the device.")
+
+        return parsed["soap:Envelope"]["soap:Body"][method + "Response"]
+
+
 class HNAPClient:
     """Client for the HNAP protocol."""
 
     def __init__(
         self,
-        soap,
-        username,
-        password,
-        time_info: Optional[TimeInfo] = None,
-        device_detection_settings_info: Optional[DeviceDetectionSettingsInfo] = None,
-        loop=None,
-    ):
+        soap: NanoSOAPClient,
+        username: str,
+        password: str,
+        time_info: TimeInfo | None = None,
+        device_detection_settings_info: DeviceDetectionSettingsInfo | None = None,
+        loop: asyncio.EventLoop | None = None,
+    ) -> None:
         """Initialize a new HNAPClient instance."""
         self.username = username
         self.password = password
@@ -175,36 +275,41 @@ class HNAPClient:
 
     @property
     def url_address(self) -> str:
-        """Return our SOAP client's URL"""
+        """Return our SOAP client's URL."""
         return self._client.address
 
-    def set_next_reboot(self):
+    def set_next_reboot(self) -> None:
         """Set the next reboot time to the next time at the _next_reboot_hour."""
-        now = datetime.now()
+        now = datetime.now(tz=homeassistant.util.dt.DEFAULT_TIME_ZONE)
         next_reboot = now.replace(
-            hour=self._next_reboot_hour, minute=0, second=0, microsecond=0
+            hour=self._next_reboot_hour,
+            minute=0,
+            second=0,
+            microsecond=0,
         )
         if next_reboot < now:
             next_reboot += timedelta(days=1)
         self._next_reboot_at = next_reboot
         _LOGGER.debug("Next reboot at %s", self._next_reboot_at)
 
-    def get_status(self):
+    def get_status(self) -> HNAPDeviceStatus:
         """Return the status of the device."""
         return self._status
 
-    def set_status(self, status):
+    def set_status(self, status: HNAPDeviceStatus) -> None:
         """Set the status of the device."""
-        _LOGGER.debug(f"Setting {self.device_name} status to {status}")
+        _LOGGER.debug("Setting %s status to %s", self.device_name, status)
         self._status = status
 
-    def get_name(self):
+    def get_name(self) -> str:
         """Return something to identify us."""
         return self._client.address
 
-    async def run_initialization(self):
-        """Perform basic initialization.  Reset the time server for the device, and
-        get the device settings."""
+    async def run_initialization(self) -> None:
+        """
+        Perform basic initialization.  Reset the time server for the device, and
+        get the device settings.
+        """
         if self._ran_initialization:
             return
         _LOGGER.debug("Running initialization.")
@@ -220,26 +325,28 @@ class HNAPClient:
 
         self._ran_initialization = True
 
-    async def reboot(self):
+    async def reboot(self) -> None:
         """Reboot the device."""
         _LOGGER.info("Rebooting device - %s", self.get_name())
-        self._rebooted_at = datetime.now()
+        self._rebooted_at = datetime.now(tz=homeassistant.util.dt.DEFAULT_TIME_ZONE)
         self.set_next_reboot()
         self.set_status(HNAPDeviceStatus.REBOOTING)
         await self.call("Reboot", timeout=REBOOT_SOAP_TIMEOUT)
 
-    async def get_latest_detection(self):
+    async def get_latest_detection(self) -> dict:
         """Get the latest motion detection from the device."""
         return await self.call(
-            "GetLatestDetection", timeout=DEFAULT_SOAP_TIMEOUT, ModuleID=1
+            "GetLatestDetection",
+            timeout=DEFAULT_SOAP_TIMEOUT,
+            ModuleID=1,
         )
 
-    async def get_device_settings(self):
+    async def get_device_settings(self) -> dict:
         """Get the device settings from the device."""
         return await self.call("GetDeviceSettings", timeout=DEFAULT_SOAP_TIMEOUT)
 
-    async def get_device_detector_settings(self):
-        """Get the motion or water detection settings from the device"""
+    async def get_device_detector_settings(self) -> dict:
+        """Get the motion or water detection settings from the device."""
         return await self.call(
             "GetWaterDetectorSettings"
             if self.model_name == "DCH-S160"
@@ -248,8 +355,8 @@ class HNAPClient:
             ModuleID=1,
         )
 
-    async def set_time_settings(self):
-        """Set the time settings on the device.  In particular, reset from ntp1.dlink.com!"""
+    async def set_time_settings(self) -> None:
+        """Set the time settings on the device.  In particular, reset from ntp1.dlink.com."""
         if not self._time_info:
             return
         _LOGGER.debug("Setting default time settings for device - %s", self.get_name())
@@ -271,11 +378,12 @@ class HNAPClient:
         )
         if _LOGGER.isEnabledFor(logging.DEBUG):
             time_settings = await self.call(
-                "GetTimeSettings", timeout=DEFAULT_SOAP_TIMEOUT
+                "GetTimeSettings",
+                timeout=DEFAULT_SOAP_TIMEOUT,
             )
             _LOGGER.debug("Current time settings on the device: %s", time_settings)
 
-    async def set_device_settings(self):
+    async def set_device_settings(self) -> None:
         """Set the motion detection settings on the device."""
         if not self._device_detection_settings_info:
             return
@@ -315,7 +423,7 @@ class HNAPClient:
             )
         else:
             _LOGGER.debug("Device type of %s is not a supported type", self.model_name)
-            raise UnsupportedDeviceType(self.model_name)
+            raise UnsupportedDeviceTypeError(self.model_name)
 
         if _LOGGER.isEnabledFor(logging.DEBUG):
             device_settings = self.get_device_detector_settings()
@@ -325,7 +433,7 @@ class HNAPClient:
                 device_settings,
             )
 
-    async def login(self):
+    async def login(self) -> None:
         """Authenticate with device and obtain cookie."""
         _LOGGER.debug("Logging into device - %s", self.get_name())
         self._private_key = None
@@ -371,22 +479,26 @@ class HNAPClient:
             if resp["LoginResult"].lower() != "success":
                 self.set_status(HNAPDeviceStatus.INVALID_PIN)
                 raise AuthenticationError(
-                    "Incorrect PIN supplied.  Be sure to use 6-digit PIN from back of device"
+                    "Incorrect PIN supplied.  Be sure to use 6-digit PIN from back of device",
                 )
 
         # If we already handled it, we're good . . .
         except (AuthenticationError, GeneralCommunicationError):
             raise
-        except (DeviceReturnedError, Rebooting, UnableToResolveHost):
+        except (DeviceReturnedError, RebootingError, UnableToResolveHostError):
             raise
-        except (UnableToConnect, InvalidDeviceState, UnsupportedDeviceType):
+        except (
+            UnableToConnectError,
+            InvalidDeviceStateError,
+            UnsupportedDeviceTypeError,
+        ):
             raise
 
         except Exception as exc:
-            _LOGGER.exception("Unexpected exception %s for %s", exc, self.get_name())
+            _LOGGER.exception("Unexpected exception %s for %s", exc, self.get_name())  # noqa: TRY401
             self.set_status(HNAPDeviceStatus.COMMUNICATION_ERROR)
             raise AuthenticationError(
-                "Unknown error trying to connect to device"
+                "Unknown error trying to connect to device",
             ) from exc
 
         self.set_status(HNAPDeviceStatus.ONLINE)
@@ -394,24 +506,30 @@ class HNAPClient:
         # This is overkill, but we want to reset all our devices to a better NTP server.
         await self.run_initialization()
 
-    async def device_actions(self):
+    async def device_actions(self) -> list:
         """Get all available actions for the device."""
         actions = await self.call("GetDeviceSettings", DEFAULT_SOAP_TIMEOUT)
-        return list(
-            map(lambda x: x[x.rfind("/") + 1 :], actions["SOAPActions"]["string"])
-        )
+        return [
+            lambda x: x[x.rfind("/") + 1 :](item)  # noqa: B023
+            for item in actions["SOAPActions"]["string"]
+        ]
 
-    async def soap_actions(self, module_id):
+    async def soap_actions(self, module_id: str) -> dict:
         """Get the available SOAP actions."""
         return await self.call(
-            "GetModuleSOAPActions", DEFAULT_SOAP_TIMEOUT, ModuleID=module_id
+            "GetModuleSOAPActions",
+            DEFAULT_SOAP_TIMEOUT,
+            ModuleID=module_id,
         )
 
-    async def resolve_state(self):
+    async def resolve_state(self) -> None:
         """Resolve any actions required by the current state of the device."""
-
         # See if we've passed our _reboot_at time:
-        if self._next_reboot_at and datetime.now() > self._next_reboot_at:
+        if (
+            self._next_reboot_at
+            and datetime.now(tz=homeassistant.util.dt.DEFAULT_TIME_ZONE)
+            > self._next_reboot_at
+        ):
             self.set_status(HNAPDeviceStatus.NEEDS_REBOOT)
 
         if self._status in [
@@ -427,18 +545,21 @@ class HNAPClient:
             self.set_status(HNAPDeviceStatus.UNKNOWN)
             _LOGGER.info("DCH-S150 status is INITIALIZING - shouldn't be making calls.")
             raise RecursionError(
-                "Device status is INITIALIZING - shouldn't be making calls."
+                "Device status is INITIALIZING - shouldn't be making calls.",
             )
         elif self._status == HNAPDeviceStatus.ONLINE:
             pass
         elif self._status == HNAPDeviceStatus.NEEDS_REBOOT:
             await self.reboot()
-            raise Rebooting("Device needs reboot - can't make calls.")
+            raise RebootingError("Device needs reboot - can't make calls.")
         elif self._status == HNAPDeviceStatus.REBOOTING:
             # Get the time since the reboot was initiated
 
             reboot_seconds = (
-                (datetime.now() - self._rebooted_at).total_seconds()
+                (
+                    datetime.now(tz=homeassistant.util.dt.DEFAULT_TIME_ZONE)
+                    - self._rebooted_at
+                ).total_seconds()
                 if self._rebooted_at is not None
                 else 0
             )
@@ -456,26 +577,32 @@ class HNAPClient:
             else:
                 # Can't make calls at this point, as we're rebooting.
                 # Leave the status as REBOOTING
-                raise Rebooting("Device is rebooting - can't make calls.")
+                raise RebootingError("Device is rebooting - can't make calls.")
         else:  # Catch-all
             # We shouldn't be here!
             self.set_status(HNAPDeviceStatus.UNKNOWN)
             _LOGGER.info(
-                f"{self.device_name} status is in unknown state {self._status} - shouldn't be making calls."
+                "%s status is in unknown state %s - shouldn't be making calls.",
+                self.device_name,
+                self._status,
             )
             raise ValueError(
-                "Device status is in unknown state {self._status}- shouldn't be making calls."
+                f"Device status is in unknown state {self._status}- shouldn't be making calls.",
             )
 
-    async def ensure_connected(self):
+    async def ensure_connected(self) -> None:
         """Ensure we're connected to the device."""
         await self.resolve_state()
 
-    async def call(self, method: str, timeout: int, *_args, **kwargs):
+    async def call(
+        self,
+        method: str,
+        timeout: int,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> dict:
         """Call an HNAP method (async)."""
         # Do login if no login has been done before
-        result = None
-        if method != "Reboot" and method != "Login":
+        if method not in ("Reboot", "Login"):
             await self.resolve_state()
 
         self._update_nauth_token(method)
@@ -484,75 +611,78 @@ class HNAPClient:
                 result = await self.soap().call(method, timeout, **kwargs)
                 if "ERROR" in result:
                     raise DeviceReturnedError(
-                        f"{self.device_name} device {self.get_name()} returned a server error."
+                        f"{self.device_name} device {self.get_name()} returned a server error.",
                     )
             # If we've already wrapped it in one of our exception types, it's good
             except DeviceReturnedError:
                 self.set_status(HNAPDeviceStatus.INTERNAL_ERROR)
                 raise
-            except Rebooting:
+            except RebootingError:
                 # Don't mess with the current status
                 raise
             except GeneralCommunicationError:
                 self.set_status(HNAPDeviceStatus.COMMUNICATION_ERROR)
                 raise
 
-            except xml.parsers.expat.ExpatError as exc:
+            except ParseError as exc:
                 self.set_status(HNAPDeviceStatus.INTERNAL_ERROR)
                 raise GeneralCommunicationError(
-                    "Invalid response received from device.  Perhaps not a DCH-S1x0?"
+                    "Invalid response received from device.  Perhaps not a DCH-S1x0?",
                 ) from exc
 
             except gaierror as exc:
                 self.set_status(HNAPDeviceStatus.COMMUNICATION_ERROR)
-                raise UnableToResolveHost(
-                    "Unable to resolve hostname via DNS.  Please ensure no misspellings, etc."
+                raise UnableToResolveHostError(
+                    "Unable to resolve hostname via DNS.  Please ensure no misspellings, etc.",
                 ) from exc
 
             except ClientConnectorError as exc:
                 self.set_status(HNAPDeviceStatus.COMMUNICATION_ERROR)
                 if isinstance(exc.__cause__, gaierror):
                     # Yeah, we're supposed to ignore implementations, but this is useful info . . .
-                    raise UnableToResolveHost(
-                        "Unable to resolve hostname via DNS.  Please ensure no misspellings, etc."
+                    raise UnableToResolveHostError(
+                        "Unable to resolve hostname via DNS.  Please ensure no misspellings, etc.",
                     ) from exc
-                else:
-                    raise UnableToConnect(
-                        f"Unable to connect to device: {exc}"
-                    ) from exc
+                raise UnableToConnectError(
+                    f"Unable to connect to device: {exc}",
+                ) from exc
 
             except TimeoutError as exc:
                 self.set_status(HNAPDeviceStatus.COMMUNICATION_ERROR)
-                raise UnableToConnect(
-                    "Timeout trying to connect to host/IP supplied."
+                raise UnableToConnectError(
+                    "Timeout trying to connect to host/IP supplied.",
                 ) from exc
 
             except Exception as exc:  # pylint: disable=broad-except
                 _LOGGER.exception(
-                    "Unexpected exception %s from %s", exc, self.get_name()
+                    "Unexpected exception from %s",
+                    self.get_name(),
                 )
                 self.set_status(HNAPDeviceStatus.COMMUNICATION_ERROR)
                 raise GeneralCommunicationError(
-                    f"Communication error from {self.get_name()}: {exc}"
+                    f"Communication error from {self.get_name()}: {exc}",
                 ) from exc
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception:  # pylint: disable=broad-except
             if _LOGGER.isEnabledFor(logging.DEBUG):
-                _LOGGER.exception("Received exception for %s: %s", self.get_name(), exc)
+                _LOGGER.exception("Received exception for %s.", self.get_name())
             raise
 
         return result
 
-    def _update_nauth_token(self, action):
+    def _update_nauth_token(self, action: Any) -> None:  # noqa: ANN401
         """Update HNAP auth token for an action."""
         if not self._private_key:
             return
 
-        self._timestamp = int(datetime.now().timestamp())
+        self._timestamp = int(
+            datetime.now(tz=homeassistant.util.dt.DEFAULT_TIME_ZONE).timestamp(),
+        )
         self._auth_token = _hmac(
-            self._private_key, f'{self._timestamp}"{ACTION_BASE_URL}{action}"'
+            self._private_key,
+            f'{self._timestamp}"{ACTION_BASE_URL}{action}"',
         )
 
-    def soap(self):
+    def soap(self) -> NanoSOAPClient:
         """Get SOAP client with updated headers."""
         if self._cookie:
             self._client.headers["Cookie"] = f"uid={self._cookie}"
@@ -560,83 +690,3 @@ class HNAPClient:
             self._client.headers["HNAP_AUTH"] = f"{self._auth_token} {self._timestamp}"
 
         return self._client
-
-
-class NanoSOAPClient:
-    """Basic SOAP client."""
-
-    BASE_NS = {
-        "xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
-        "xmlns:xsd": "http://www.w3.org/2001/XMLSchema",
-        "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-    }
-    ACTION_NS = {"xmlns": "http://purenetworks.com/HNAP1/"}
-
-    def __init__(self, address, action, loop=None, session=None):
-        self.address = f"http://{address}/HNAP1"
-        self.action = action
-        self.loop = loop or asyncio.get_event_loop()
-        self.session = session or aiohttp.ClientSession(loop=loop)
-        self.headers = {}
-
-    def _generate_request_xml_old(self, method, **kwargs):
-        body = ET.Element("soap:Body")
-        action = ET.Element(method, self.ACTION_NS)
-        body.append(action)
-
-        for param, value in kwargs.items():
-            element = ET.Element(param)
-            if isinstance(value, str) and len(value) > 0 and value[0] == "<":
-                # Assume it's raw XML
-                sub = ET.fromstring(value)
-                element.append(sub)
-            else:
-                element.text = str(value)
-            action.append(element)
-
-        envelope = ET.Element("soap:Envelope", self.BASE_NS)
-        envelope.append(body)
-
-        file_handle = BytesIO()
-        tree = ET.ElementTree(envelope)
-        tree.write(file_handle, encoding="utf-8", xml_declaration=True)
-
-        return file_handle.getvalue().decode("utf-8")
-
-    def _generate_request_xml(self, method, **kwargs):
-        parameters = ""
-        for param, value in kwargs.items():
-            parameters += f"<{param}>{value}</{param}>"
-
-        request = f"""<?xml version ="1.0" encoding="utf-8"?>
-          <soap:Envelope
-          xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-            <soap:Body>
-              <{method} xmlns="http://purenetworks.com/HNAP1/">
-                {parameters}
-              </{method}>
-            </soap:Body>
-          </soap:Envelope>
-        """
-        return request
-
-    async def call(self, method, timeout: int = 10, **kwargs):
-        """Call a SOAP method."""
-        request_xml = self._generate_request_xml(method, **kwargs)
-
-        headers = self.headers.copy()
-        headers["SOAPAction"] = f'"{self.action}{method}"'
-
-        resp = await self.session.post(
-            self.address, data=request_xml, headers=headers, timeout=timeout
-        )
-        text = await resp.text()
-        parsed = xmltodict.parse(text)
-        if "soap:Envelope" not in parsed:
-            _LOGGER.error("parsed: %s", str(parsed))
-            raise GeneralCommunicationError("Received a bad response from the device.")
-
-        return parsed["soap:Envelope"]["soap:Body"][method + "Response"]

@@ -1,0 +1,42 @@
+name: Build Wheels
+
+on:
+  pull_request:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build_wheel:
+    name: "build_wheel"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+      - name: Build sdist
+        run: |
+          poetry self add "poetry-dynamic-versioning[plugin]"
+          poetry build --format=sdist
+      - uses: actions/upload-artifact@v4
+        with:
+          path: dist/*.tar.gz
+
+  upload_to_pypi:
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    needs:
+      [
+        "build_wheel",
+      ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
+          packages_dir: artifact/
+          skip_existing: true
