@@ -278,6 +278,11 @@ class HNAPClient:
         """Return our SOAP client's URL."""
         return self._client.address
 
+    @property
+    def private_key(self) -> str | None:
+        """Return our private key."""
+        return self._private_key
+
     def set_next_reboot(self) -> None:
         """Set the next reboot time to the next time at the _next_reboot_hour."""
         now = datetime.now(tz=homeassistant.util.dt.DEFAULT_TIME_ZONE)

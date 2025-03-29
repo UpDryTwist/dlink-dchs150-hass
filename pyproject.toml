@@ -77,6 +77,7 @@ pytz = "^2025.1"
 voluptuous = "^0.15.2"
 homeassistant = "^2025.2.5"
 defusedxml = "^0.7.1"
+PyCryptodome = "^3.22.0"
 
 [tool.poetry.group.dev.dependencies]
 poetry = "^1.7.1"

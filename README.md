@@ -85,9 +85,9 @@ Here are some parameters you can tinker with:
 
 If for some reason you have a DCH-S150 that you never configured, or if you have to
 factory-reset your device (hopefully not because you were futzing with parameters with this
-component!), then you can check out my script [here](https://raw.githubusercontent.com/UpDryTwist/defogger-dch-s150/master/dch-wifi.py)
+component!), then you can check out my script [here](./utils/dch_wifi_init.py)
 
-- You can probably ignore the rest of the project it’s in. I initially cloned bmork’s cool DCS-8000LH defogger (i.e., cloud remover) project, and started tinkering with that, until I remembered that I’d never been successful setting up my devices using Bluetooth from my phone – so I never got the BTLE stuff to work – and, frankly, you don’t need to.
+- You might want to check out the project this is copied from ([defogger-dch-s150](https://www.github.com/UpDryTwist/defogger-dch-s150/). I initially cloned bmork’s cool DCS-8000LH defogger (i.e., cloud remover) project, and started tinkering with that, until I remembered that I’d never been successful setting up my devices using Bluetooth from my phone – so I never got the BTLE stuff to work – and, frankly, you don’t need to.
 
 - You need to connect your wifi to the access point the device advertises. Afterwards, it’ll probably show up at IP 192.168.0.60. Make sure you can access that cleanly before anything else (you can go try logging in at that IP - won’t accomplish much, but proves you can get there). I do all this from a Linux box - that's probably the easiest way.
 
