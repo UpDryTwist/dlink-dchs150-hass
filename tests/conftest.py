@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_socket import enable_socket, socket_allow_hosts
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -24,6 +25,13 @@ from custom_components.dchs150_motion.const import (
 )
 
 pytest_plugins = "pytest_homeassistant_custom_component"
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_runtest_setup() -> None:
+    """Enable socket and allow local."""
+    enable_socket()
+    socket_allow_hosts(["127.0.0.1", "localhost", "::1"], allow_unix_socket=True)
 
 
 # This fixture is used to prevent HomeAssistant from attempting to create and dismiss persistent

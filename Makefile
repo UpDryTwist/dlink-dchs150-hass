@@ -82,9 +82,13 @@ just-unit:
 	@poetry run pytest -s -v $(TEST_DIR)
 
 unit:
-	@poetry run coverage run -m pytest -s -v
-	@poetry run coverage report -m
-	@poetry run coverage html
+	@if [ "$(OS)" == "Windows_NT" ]; then \
+		echo "Unit tests skipped on Windows." ; \
+	else \
+		poetry run coverage run -m pytest -s -v ; \
+		poetry run coverage report -m ; \
+		poetry run coverage html ; \
+	fi
 
 check:
 	@poetry run pre-commit run --all-files
