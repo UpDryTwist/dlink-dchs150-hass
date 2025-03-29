@@ -13,13 +13,14 @@ __all__: list[str] = []
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.core_config import Config
 
 from .hass_integration import HassIntegration
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
-async def async_setup(hass: HomeAssistant) -> bool:
+async def async_setup(hass: HomeAssistant, _config: Config) -> bool:
     """Perform setup.  Setup using YAML not supported . . ."""
     return await HassIntegration.async_setup(hass)
 
