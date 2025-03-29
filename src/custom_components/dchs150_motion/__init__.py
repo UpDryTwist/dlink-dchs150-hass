@@ -7,7 +7,7 @@ https://github.com/updrytwist/dlink-dchs150-hass
 
 import logging
 
-__version__ = "0.2.0-dev0"
+__version__ = "0.3.0-dev0"
 
 __all__: list[str] = []
 
