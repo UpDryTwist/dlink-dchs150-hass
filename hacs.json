@@ -1,4 +1,5 @@
 {
-  "name": "dchs150_motion",
+  "name": "D-Link DCH-S150/DCH-S160 Sensor",
+  "content_in_root": false,
   "render_readme": true
 }
