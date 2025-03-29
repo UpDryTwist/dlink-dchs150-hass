@@ -1,6 +1,8 @@
 """Tests for dlink_dchs150_hass api."""
 
-from _pytest.logging import LogCaptureFixture
+from _pytest.logging import (
+    LogCaptureFixture,  # pyright: ignore[reportPrivateImportUsage]
+)
 from homeassistant.core import HomeAssistant
 
 
