@@ -821,14 +821,14 @@ virtualenv = ["virtualenv (>=20.0.35)"]
 
 [[package]]
 name = "bump-my-version"
-version = "0.32.2"
+version = "0.33.0"
 description = "Version bump your Python project"
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "bump_my_version-0.32.2-py3-none-any.whl", hash = "sha256:fb93c5a70a2368354bcac4457d22f282dc66a7bd241241f5a4e3d49002dece36"},
-    {file = "bump_my_version-0.32.2.tar.gz", hash = "sha256:fc1c686af66c39c44d2f19c4d29597fcc2f938bc19046b8df26bfa44c93f11c0"},
+    {file = "bump_my_version-0.33.0-py3-none-any.whl", hash = "sha256:05a30ef1f29236fb11acc502232612cc9405a79017c4f83cc68eaa3b75a4376a"},
+    {file = "bump_my_version-0.33.0.tar.gz", hash = "sha256:97fa6c7601f6fabd86f7edd7150b99d0dd31c90f5dbb23924147fb8d865905be"},
 ]
 
 [package.dependencies]
@@ -4255,14 +4255,14 @@ unidecode = ["Unidecode (>=1.1.1)"]
 
 [[package]]
 name = "pytz"
-version = "2025.1"
+version = "2025.2"
 description = "World timezone definitions, modern and historical"
 optional = false
 python-versions = "*"
 groups = ["main", "dev"]
 files = [
-    {file = "pytz-2025.1-py2.py3-none-any.whl", hash = "sha256:89dd22dca55b46eac6eda23b2d72721bf1bdfef212645d81513ef5d03038de57"},
-    {file = "pytz-2025.1.tar.gz", hash = "sha256:c2db42be2a2518b28e65f9207c4d05e6ff547d1efa4086469ef855e4ab70178e"},
+    {file = "pytz-2025.2-py2.py3-none-any.whl", hash = "sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262d43f0ec2f00"},
+    {file = "pytz-2025.2.tar.gz", hash = "sha256:360b9e3dbb49a209c21ad61809c7fb453643e048b38924c765813546746e81c3"},
 ]
 
 [[package]]
@@ -5953,4 +5953,4 @@ ifaddr = ">=0.1.7"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<3.14"
-content-hash = "56e97e2c5848fe91a32dc2edade6c9aa38bea1eef9bc5e64a8d3e7259f53ddc0"
+content-hash = "aac8de3291d9fb36f0e867b2073e126126d3c69b26d28e279fbf74ec5c4c3fb4"
