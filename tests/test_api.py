@@ -1,11 +1,13 @@
 """Tests for dlink_dchs150_hass api."""
 
+import pytest
 from _pytest.logging import (
     LogCaptureFixture,  # pyright: ignore[reportPrivateImportUsage]
 )
 from homeassistant.core import HomeAssistant
 
 
+@pytest.mark.asyncio
 async def test_api(
     _hass: HomeAssistant,  # noqa: PT019
     _aioclient_mock,  # noqa: PT019 ANN001

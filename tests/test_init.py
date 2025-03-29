@@ -22,6 +22,7 @@ from custom_components.dchs150_motion.hass_integration import (
 # Home Assistant using the pytest_homeassistant_custom_component plugin.
 # Assertions allow you to verify that the return value of whatever is on the left
 # side of the assertion matches with the right side.
+@pytest.mark.asyncio
 async def test_setup_unload_and_reload_entry(
     hass: HomeAssistant,
     bypass_get_data,  # noqa: ANN001
@@ -53,6 +54,7 @@ async def test_setup_unload_and_reload_entry(
     assert config_entry.entry_id not in hass.data[DOMAIN]
 
 
+@pytest.mark.asyncio
 async def test_setup_entry_exception(
     hass: HomeAssistant,
     error_on_get_data,  # noqa: ANN001

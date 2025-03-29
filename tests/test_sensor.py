@@ -2,7 +2,7 @@
 
 # from unittest.mock import call
 # from unittest.mock import patch
-
+import pytest
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -16,6 +16,7 @@ from custom_components.dchs150_motion import (
 # )
 
 
+@pytest.mark.asyncio
 async def test_sensor_services(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
     """Test sensor services."""
     # Create a mock entry so we don't have to go through config flow
