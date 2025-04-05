@@ -19,7 +19,7 @@ exclude_dirs = ["tests", "docs", "examples", ".venv", "dist", ".ruff_cache", ".g
 
 [tool.creosote]
 venvs = [".venv"]
-paths = ["src", "tests", "utils"]
+paths = ["custom_components", "tests", "utils"]
 deps-file = "pyproject.toml"
 sections = ["tool.poetry.dependencies"]
 
