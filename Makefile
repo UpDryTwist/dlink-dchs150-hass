@@ -97,7 +97,7 @@ check-manual:
 	@poetry run pre-commit run --hook-stage manual --all-files
 
 check-github-actions:
-	@poetry run pre-commit run --hook-stage manual actionlint
+	@poetry run pre-commit run --hook-stage manual actionlint-system
 
 commit-ready: check unit
 
