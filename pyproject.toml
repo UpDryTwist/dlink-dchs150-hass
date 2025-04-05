@@ -9,7 +9,7 @@ repository = "https://github.com/UpDryTwist/dlink-dschs150-hass"
 documentation = "https://dlink-dschs150-hass.readthedocs.io/en/latest/"
 keywords = ["dlink_dschs150_hass"]
 homepage = "https://github.com/UpDryTwist/dlink-dschs150-hass"
-packages = [ { include = "custom_components", from = "src" } ]
+packages = [ { include = "custom_components" } ]
 
 [lint.per-file-ignores]
 "tests/*.py" = ["S101"]
