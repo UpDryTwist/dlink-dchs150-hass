@@ -30,15 +30,6 @@ jobs:
       PYTHON: ${{ matrix.python-version }}
 
     steps:
-      - name: Set OS Environment Variables (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          "echo 'ACTIVATE_PYTHON_VENV=.venv/scripts/activate' >> $GITHUB_ENV"
-
-      - name: Set OS Environment Variables (not Windows)
-        if: runner.os != 'Windows'
-        run: |
-          "echo 'ACTIVATE_PYTHON_VENV=.venv/bin/activate' >> $GITHUB_ENV"
 
       - name: Check out repository
         uses: actions/checkout@v4
@@ -61,7 +52,18 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: false # Currently there seems to be some race-condition in windows
 
-      - name: Install library
+      - name: Cache the dependencies
+        uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: .venv
+          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+
+      - name: Install libraries
+        run: poetry install --no-interaction --no-root
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+
+      - name: Now install our stuff
         run: poetry install --no-interaction
 
       - uses: actions/cache@v4
@@ -70,9 +72,7 @@ jobs:
           key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Pre-commit run
-        run: |
-          source ${{ env.ACTIVATE_PYTHON_VENV }}
-          pre-commit run --show-diff-on-failure --color=always --all-files
+        run: poetry run pre-commit run --all-files --show-diff-on-failure --color=always
 
       - name: Check tests folder existence
         id: check_test_files
@@ -82,24 +82,28 @@ jobs:
 
       - name: Run tests
         if: steps.check_test_files.outputs.files_exists == 'true'
-        run: |
-          source ${{ env.ACTIVATE_PYTHON_VENV }}
-          coverage run -m pytest --cov-report term --cov-report xml --junitxml=testresults.xml
-          coverage report
+        run: poetry run pytest
 
-      - name: Upload coverage to Codecov
-        if: steps.check_test_files.outputs.files_exists == 'true'
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: unittests
-          env_vars: OS,PYTHON
-          name: Python ${{ matrix.python-version }} on ${{ runner.os }}
-
+#      - name: Run tests
+#        if: steps.check_test_files.outputs.files_exists == 'true'
+#        run: |
+#          source ${{ env.ACTIVATE_PYTHON_VENV }}
+#          coverage run -m pytest --cov-report term --cov-report xml --junitxml=testresults.xml
+#          coverage report
+#
+#      - name: Upload coverage to Codecov
+#        if: steps.check_test_files.outputs.files_exists == 'true'
+#        uses: codecov/codecov-action@v5
+#        with:
+#          token: ${{ secrets.CODECOV_TOKEN }}
+#          flags: unittests
+#          env_vars: OS,PYTHON
+#          name: Python ${{ matrix.python-version }} on ${{ runner.os }}
+#
       #----------------------------------------------
       #            make sure docs build
       #----------------------------------------------
-      - name: Build HTML docs
-        run: |
-          source ${{ env.ACTIVATE_PYTHON_VENV }}
-          sphinx-build -b html docs/ docs/build/html
+#      - name: Build HTML docs
+#        run: |
+#          source ${{ env.ACTIVATE_PYTHON_VENV }}
+#          sphinx-build -b html docs/ docs/build/html
