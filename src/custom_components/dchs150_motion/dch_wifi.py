@@ -22,7 +22,7 @@ import aiohttp
 import defusedxml.ElementTree as DET  # noqa: N814
 import homeassistant.util.dt
 import xmltodict
-from aiohttp.client_exceptions import ClientConnectorError
+from aiohttp.client_exceptions import ClientConnectorError, ServerDisconnectedError
 
 from .const import (
     DEFAULT_BACKOFF_SECONDS,
@@ -628,6 +628,12 @@ class HNAPClient:
             except GeneralCommunicationError:
                 self.set_status(HNAPDeviceStatus.COMMUNICATION_ERROR)
                 raise
+
+            except ServerDisconnectedError as exc:
+                self.set_status(HNAPDeviceStatus.DISCONNECTED)
+                raise GeneralCommunicationError(
+                    "Server disconnected.  No specific diagnostic.  Perhaps reboot it?",
+                ) from exc
 
             except ParseError as exc:
                 self.set_status(HNAPDeviceStatus.INTERNAL_ERROR)
