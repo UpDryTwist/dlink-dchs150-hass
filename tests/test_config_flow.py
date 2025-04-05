@@ -23,11 +23,11 @@ def bypass_setup_fixture() -> Generator[Any, None, None]:
     """Prevent setup."""
     with (
         patch(
-            "custom_components.dlink_dchs150_hass.async_setup",
+            "custom_components.dchs150_motion.async_setup",
             return_value=True,
         ),
         patch(
-            "custom_components.dlink_dchs150_hass.async_setup_entry",
+            "custom_components.dchs150_motion.async_setup_entry",
             return_value=True,
         ),
     ):

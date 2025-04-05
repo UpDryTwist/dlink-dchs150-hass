@@ -53,7 +53,7 @@ def skip_notifications_fixture() -> Generator[Any]:
 def bypass_get_data_fixture() -> Generator[Any]:
     """Skip calls to get data from API."""
     with patch(
-        "custom_components.dlink_dchs150_hass.DlinkDchHassApiClient.async_get_data",
+        "custom_components.dchs150_motion.api.DlinkDchHassApiClient.async_get_data",
     ):
         yield
 
@@ -64,7 +64,7 @@ def bypass_get_data_fixture() -> Generator[Any]:
 def error_get_data_fixture() -> Generator[Any]:
     """Simulate error when retrieving data from API."""
     with patch(
-        "custom_components.dlink_dchs150_hass.DlinkDchHassApiClient.async_get_data",
+        "custom_components.dchs150_motion.api.DlinkDchHassApiClient.async_get_data",
         side_effect=Exception,
     ):
         yield
