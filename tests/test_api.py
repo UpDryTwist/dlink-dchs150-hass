@@ -9,9 +9,9 @@ from homeassistant.core import HomeAssistant
 
 @pytest.mark.asyncio
 async def test_api(
-    _hass: HomeAssistant,  # noqa: PT019
-    _aioclient_mock,  # noqa: PT019 ANN001
-    _caplog: LogCaptureFixture,  # noqa: PT019
+    hass: HomeAssistant,
+    aioclient_mock,  # noqa: ANN001
+    caplog: LogCaptureFixture,
 ) -> None:
     """Test API calls."""
     # To test the api submodule, we first create an instance of our API client
