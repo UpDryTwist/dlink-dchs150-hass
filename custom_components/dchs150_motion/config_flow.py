@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from functools import partial
 from typing import Any
 
 import voluptuous as vol
@@ -56,10 +57,9 @@ class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
     device_detection_defaults: DeviceDetectionSettingsInfo | None = None
     defaults: dict | None = None
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+    def __init__(self) -> None:
         """Initialize HACS options flow."""
-        self.config_entry = config_entry
-        self.options = dict(config_entry.options)
+        self._conf_app_id: str | None = None
 
     async def async_step_init(
         self,
@@ -118,8 +118,8 @@ class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
                 CONF_TZ_DST_END_TIME: time_zone_info.tz_dst_end_time,
             }
 
-        if key in self.options:
-            return self.options.get(key, True)
+        if key in self.config_entry.options:
+            return self.config_entry.options.get(key, True)
         if key in self.defaults:
             return self.defaults[key]
         return None
@@ -130,11 +130,7 @@ class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> config_entries.ConfigFlowResult:
         """Handle a flow initialized by the user."""
         if user_input is not None:
-            self.options.update(user_input)
-            return self.async_create_entry(
-                title="",
-                data=self.options,
-            )
+            return self.async_create_entry(title="", data=user_input)
 
         if not self.device_detection_defaults:
             await self.load_device_detection_defaults()
@@ -271,10 +267,10 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
+        config_entry: config_entries.ConfigEntry,  # noqa: ARG004
     ) -> DlinkDchHassOptionsFlowHandler:
         """Get the options flow."""
-        return DlinkDchHassOptionsFlowHandler(config_entry)
+        return DlinkDchHassOptionsFlowHandler()
 
     async def _show_config_form(
         self,
@@ -304,6 +300,13 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def _test_credentials(self, host: str, pin: str) -> None:
         """Try to use the credentials.  Will return exception if not so."""
         session = async_create_clientsession(self.hass)
-        time_info = fill_in_timezone(self.hass.config.time_zone, None)
+        time_info = await self.hass.async_add_executor_job(
+            partial(
+                fill_in_timezone,
+                time_zone_string=self.hass.config.time_zone,
+                entry=None,
+            ),
+        )
+
         client = DlinkDchHassApiClient(host, pin, session, time_info, None)
         await client.async_get_data()
