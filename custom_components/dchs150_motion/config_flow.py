@@ -260,6 +260,12 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(unique_id)
                 self._abort_if_unique_id_configured()
 
+                _LOGGER.debug(
+                    "Creating entry for %s with data %s",
+                    user_input[CONF_HOST],
+                    user_input,
+                )
+
                 return self.async_create_entry(
                     title=user_input[CONF_HOST],
                     data=user_input,
@@ -289,7 +295,12 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Get the options flow."""
-        _LOGGER.debug("Creating options flow for %s", config_entry.entry_id)
+        _LOGGER.debug(
+            "Creating options flow for %s",
+            config_entry.entry_id
+            if config_entry and hasattr(config_entry, "entry_id")
+            else "MISSING",
+        )
         return DlinkDchHassOptionsFlowHandler()
 
     async def _show_config_form(
