@@ -74,6 +74,7 @@ class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def load_device_detection_defaults(self) -> None:
         """Load the motion detection defaults."""
+        _LOGGER.debug("Loading motion detection defaults")
         session = async_create_clientsession(self.hass)
         host = self.config_entry.data.get(CONF_HOST)
         pin = self.config_entry.data.get(CONF_PIN)
@@ -237,6 +238,8 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         self._errors = {}
 
+        _LOGGER.debug("Getting options")
+
         # Uncomment the next 2 lines if only a single instance of the integration is allowed:
         # if self._async_current_entries():
         #     return self.async_abort(reason="single_instance_allowed")
@@ -276,9 +279,10 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,  # noqa: ARG004
+        config_entry: config_entries.ConfigEntry,
     ) -> DlinkDchHassOptionsFlowHandler:
         """Get the options flow."""
+        _LOGGER.debug("Creating options flow for %s", config_entry.entry_id)
         return DlinkDchHassOptionsFlowHandler()
 
     async def _show_config_form(
