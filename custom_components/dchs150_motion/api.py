@@ -219,6 +219,12 @@ class DlinkDchHassApiClient:
     async def async_get_data(self) -> dict:
         """Get data from the API."""
         last_detection = await self.get_latest_detection()
+        _LOGGER.debug(
+            "Read data from device %s with mac %s and host %s",
+            self._client.device_name,
+            self._client.mac_address,
+            self._host,
+        )
         return {
             "last_detection": last_detection,
             "mac_address": self._client.mac_address,

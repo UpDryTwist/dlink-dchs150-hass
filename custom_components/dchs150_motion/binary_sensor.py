@@ -47,7 +47,6 @@ class DlinkDchHassBinarySensor(DlinkDchHassEntity, BinarySensorEntity):  # pyrig
         name = self.coordinator.data.get("device_name")
         if not name:
             name = DEFAULT_SENSOR_NAME
-        _LOGGER.debug("Sensor name: %s", name)
         return name
 
     @property
