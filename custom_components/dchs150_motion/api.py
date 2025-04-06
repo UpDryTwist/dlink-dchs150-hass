@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import datetime
 import logging
+from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -87,13 +87,13 @@ def fill_in_timezone(
 
     if time_zone_string:
         tzinfo = homeassistant.util.dt.get_time_zone(time_zone_string)
-        t_now = datetime.datetime.now(tzinfo)
+        t_now = datetime.now(tzinfo)
         utc_offset = t_now.utcoffset()
         t_utcoffset = utc_offset.total_seconds() if utc_offset else 0
 
         tz_info = pytz.timezone(time_zone_string)
-        now = datetime.datetime.now(tz=tz_info)
-        is_dst = now.astimezone(tz_info).dst() != datetime.timedelta(0)
+        now = datetime.now(tz=tz_info)
+        is_dst = now.astimezone(tz_info).dst() != timedelta(0)
 
         time_info.tz_dst = is_dst
         time_info.tz_offset = int(t_utcoffset / (60 * 60))
@@ -243,14 +243,14 @@ class DlinkDchHassApiClient:
         """Get motion detector settings."""
         return await self._client.get_device_detector_settings()
 
-    async def get_latest_detection(self) -> datetime.date:
+    async def get_latest_detection(self) -> date:
         """Get the last motion detected time."""
         resp = await self._client.get_latest_detection()
         if "LatestDetectTime" not in resp or not (
             isinstance(resp["LatestDetectTime"], (float, str))
         ):
             # Not sure exactly what this means, but return something in the past.
-            last_detected = datetime.datetime(
+            last_detected = datetime(
                 year=2020,
                 month=1,
                 day=1,
@@ -260,17 +260,21 @@ class DlinkDchHassApiClient:
                 tzinfo=homeassistant.util.dt.DEFAULT_TIME_ZONE,
             )
         else:
-            last_detected = datetime.datetime.fromtimestamp(
+            last_detected = datetime.fromtimestamp(
                 float(resp["LatestDetectTime"]),
                 tz=homeassistant.util.dt.DEFAULT_TIME_ZONE,
             )
+        current_time = datetime.now(
+            tz=homeassistant.util.dt.DEFAULT_TIME_ZONE,
+        )
         if not self._last_detect_time or last_detected != self._last_detect_time:
-            _LOGGER.debug(
-                "Detected new %s on %s - was %s now %s",
+            _LOGGER.info(
+                "Detected new %s on %s - was %s now %s - current time: %s",
                 self.detection_type,
                 self._client.get_name(),
                 self._last_detect_time,
                 last_detected,
+                current_time,
             )
             self._prev_detect_time = self._last_detect_time
             self._last_detect_time = last_detected
