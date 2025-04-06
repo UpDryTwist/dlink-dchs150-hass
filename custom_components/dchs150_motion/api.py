@@ -55,6 +55,7 @@ def fill_in_device_settings(
     entry: ConfigEntry,
 ) -> DeviceDetectionSettingsInfo | None:
     """Fill in the info we're going to use to set up the device's motion/water settings."""
+    _LOGGER.debug("Fill in device settings: %s", entry.options)
     if entry.options.get(CONF_BACKOFF):
         device_settings_info = DeviceDetectionSettingsInfo()
         device_settings_info.backoff = set_if_set(
@@ -234,6 +235,13 @@ class DlinkDchHassApiClient:
             # If not set, force a read
             await self._client.get_device_settings()
         return self._client.model_name or "Unknown"
+
+    async def get_mac_address(self) -> str:
+        """Get the MAC address."""
+        if not self._client.mac_address:
+            # If not set, force a read
+            await self._client.get_device_settings()
+        return self._client.mac_address or "Unknown"
 
     async def async_get_device_settings(self) -> dict:
         """Get device settings."""

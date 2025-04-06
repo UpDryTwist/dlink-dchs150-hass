@@ -145,7 +145,7 @@ class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
             await self.load_device_detection_defaults()
 
         return self.async_show_form(
-            step_id="user",
+            step_id="init",
             data_schema=vol.Schema(
                 {
                     vol.Required(
@@ -272,15 +272,13 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             except UnsupportedDeviceTypeError:
                 self._errors["base"] = "unsupported_device_type"
 
-            return await self._show_config_form(user_input)
-
         return await self._show_config_form(user_input)
 
     @staticmethod
     @callback
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
-    ) -> DlinkDchHassOptionsFlowHandler:
+    ) -> config_entries.OptionsFlow:
         """Get the options flow."""
         _LOGGER.debug("Creating options flow for %s", config_entry.entry_id)
         return DlinkDchHassOptionsFlowHandler()
