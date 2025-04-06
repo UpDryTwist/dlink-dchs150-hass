@@ -32,6 +32,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up binary_sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
+    _LOGGER.debug("Adding devices for coordinator %s and entry %s", coordinator, entry)
     async_add_devices([DlinkDchHassBinarySensor(coordinator, entry)])
 
 
@@ -46,6 +47,7 @@ class DlinkDchHassBinarySensor(DlinkDchHassEntity, BinarySensorEntity):  # pyrig
         name = self.coordinator.data.get("device_name")
         if not name:
             name = DEFAULT_SENSOR_NAME
+        _LOGGER.debug("Sensor name: %s", name)
         return name
 
     @property
