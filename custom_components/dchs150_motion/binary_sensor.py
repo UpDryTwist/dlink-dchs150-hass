@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
@@ -21,6 +22,8 @@ if TYPE_CHECKING:
 from .const import CONF_BACKOFF, DEFAULT_BACKOFF_SECONDS, DEFAULT_SENSOR_NAME, DOMAIN
 from .dch_wifi import UnsupportedDeviceTypeError
 from .entity import DlinkDchHassEntity
+
+_LOGGER: logging.Logger = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -56,22 +59,29 @@ class DlinkDchHassBinarySensor(DlinkDchHassEntity, BinarySensorEntity):  # pyrig
             return BinarySensorDeviceClass.MOISTURE
         raise UnsupportedDeviceTypeError
 
-    @cached_property
-    def is_on(self) -> bool | None:
+    @property
+    def is_on(self) -> bool | None:  # pyright: ignore
         """Return true if the binary_sensor is on."""
         backoff_seconds = self.config_entry.data.get(CONF_BACKOFF)
         if not backoff_seconds:
             backoff_seconds = DEFAULT_BACKOFF_SECONDS
         last_detect_time = self.coordinator.data.get("last_detection")
-        timed_out = (
-            datetime.now(
-                tz=homeassistant.util.dt.DEFAULT_TIME_ZONE,
-            )
-            > last_detect_time
-            + timedelta(
-                seconds=backoff_seconds,
-            )
-            if last_detect_time
-            else False
+        current_time = datetime.now(
+            tz=homeassistant.util.dt.DEFAULT_TIME_ZONE,
         )
-        return not timed_out
+        timeout_time = (
+            last_detect_time + timedelta(seconds=backoff_seconds)
+            if last_detect_time
+            else None
+        )
+        is_on = not timeout_time or current_time < timeout_time
+
+        _LOGGER.debug(
+            "Current time is %s, timeout time is %s, last detection time is %s, on = %s",
+            current_time,
+            timeout_time,
+            last_detect_time,
+            is_on,
+        )
+
+        return is_on

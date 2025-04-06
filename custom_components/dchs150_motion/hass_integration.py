@@ -99,6 +99,7 @@ class HassIntegration:
             UPDATE_LISTENER_REMOVE not in hass.data[DOMAIN]
             or not hass.data[DOMAIN][UPDATE_LISTENER_REMOVE]
         ):
+            _LOGGER.debug("Registering update listener")
             hass.data[DOMAIN][UPDATE_LISTENER_REMOVE] = entry.add_update_listener(
                 HassIntegration.async_reload_entry,
             )
