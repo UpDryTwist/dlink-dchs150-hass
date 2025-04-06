@@ -59,8 +59,8 @@ class DlinkDchHassBinarySensor(DlinkDchHassEntity, BinarySensorEntity):  # pyrig
             return BinarySensorDeviceClass.MOISTURE
         raise UnsupportedDeviceTypeError
 
-    @cached_property
-    def is_on(self) -> bool | None:
+    @property
+    def is_on(self) -> bool | None:  # pyright: ignore
         """Return true if the binary_sensor is on."""
         backoff_seconds = self.config_entry.data.get(CONF_BACKOFF)
         if not backoff_seconds:
@@ -74,12 +74,14 @@ class DlinkDchHassBinarySensor(DlinkDchHassEntity, BinarySensorEntity):  # pyrig
             if last_detect_time
             else None
         )
+        is_on = not timeout_time or current_time < timeout_time
 
         _LOGGER.info(
-            "Current time is %s, timeout time is %s, last detection time is %s",
+            "Current time is %s, timeout time is %s, last detection time is %s, on = %s",
             current_time,
             timeout_time,
             last_detect_time,
+            is_on,
         )
 
-        return not timeout_time or current_time < timeout_time
+        return is_on
