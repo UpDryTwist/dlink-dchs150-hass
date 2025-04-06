@@ -66,6 +66,10 @@ class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
         user_input: dict | None = None,
     ) -> config_entries.ConfigFlowResult:  # pylint: disable=unused-argument
         """Manage the options."""
+        _LOGGER.info(
+            "OptionsFlowHandler async_step_init called with user_input: %s",
+            user_input,
+        )
         return await self.async_step_user(user_input)
 
     async def load_device_detection_defaults(self) -> None:
@@ -130,6 +134,10 @@ class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> config_entries.ConfigFlowResult:
         """Handle a flow initialized by the user."""
         if user_input is not None:
+            _LOGGER.info(
+                "Updating options in OptionsFlowHandler with an existing user input %s",
+                user_input,
+            )
             return self.async_create_entry(title="", data=user_input)
 
         if not self.device_detection_defaults:
@@ -234,6 +242,7 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         #     return self.async_abort(reason="single_instance_allowed")
 
         if user_input is not None:
+            _LOGGER.info("User input in FlowHandler async_step_user: %s", user_input)
             try:
                 await self._test_credentials(
                     user_input[CONF_HOST],
