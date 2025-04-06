@@ -73,14 +73,12 @@ class DlinkDchHassBinarySensor(DlinkDchHassEntity, BinarySensorEntity):  # pyrig
             if last_detect_time
             else None
         )
-        is_on = not timeout_time or current_time < timeout_time
+        return not timeout_time or current_time < timeout_time
 
-        _LOGGER.debug(
-            "Current time is %s, timeout time is %s, last detection time is %s, on = %s",
-            current_time,
-            timeout_time,
-            last_detect_time,
-            is_on,
-        )
-
-        return is_on
+        # _LOGGER.debug(
+        #    "Current time is %s, timeout time is %s, last detection time is %s, on = %s",
+        #    current_time,
+        #    timeout_time,
+        #    last_detect_time,
+        #    is_on,
+        # )
