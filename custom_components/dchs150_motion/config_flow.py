@@ -226,6 +226,7 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
+    _mac_address: str | None = None
 
     def __init__(self) -> None:
         """Initialize."""
@@ -251,6 +252,14 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     user_input[CONF_HOST],
                     user_input[CONF_PIN],
                 )
+
+                unique_id = (
+                    self._mac_address if self._mac_address else user_input[CONF_HOST]
+                )
+                _LOGGER.debug("Testing for unique ID: %s", unique_id)
+                await self.async_set_unique_id(unique_id)
+                self._abort_if_unique_id_configured()
+
                 return self.async_create_entry(
                     title=user_input[CONF_HOST],
                     data=user_input,
@@ -320,4 +329,5 @@ class DlinkDchHassFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
         client = DlinkDchHassApiClient(host, pin, session, time_info, None)
-        await client.async_get_data()
+        client_data = await client.async_get_data()
+        self._mac_address = client_data.get("mac_address")
