@@ -265,7 +265,7 @@ class DlinkDchHassApiClient:
                 tz=homeassistant.util.dt.DEFAULT_TIME_ZONE,
             )
         if not self._last_detect_time or last_detected != self._last_detect_time:
-            _LOGGER.debug(
+            _LOGGER.info(
                 "Detected new %s on %s - was %s now %s",
                 self.detection_type,
                 self._client.get_name(),
