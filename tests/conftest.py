@@ -77,11 +77,11 @@ def config_data() -> dict[str, str]:
 
 
 @pytest.fixture(name="config_entry")
-def config_entry() -> MockConfigEntry:
+def config_entry(config_data) -> MockConfigEntry:  # noqa: ANN001
     """Create a mock config entry."""
     return MockConfigEntry(
         domain=DOMAIN,
-        data=config_data(),
+        data=config_data,
         entry_id="test",
     )
 
