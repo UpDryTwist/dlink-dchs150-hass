@@ -9,7 +9,6 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
-from propcache.api import cached_property
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -29,13 +28,13 @@ class DlinkDchHassEntity(CoordinatorEntity):
         super().__init__(coordinator)
         self.config_entry = config_entry
 
-    @cached_property
-    def unique_id(self) -> str | None:
+    @property
+    def unique_id(self) -> str | None:  # pyright: ignore
         """Return a unique ID to use for this entity."""
         return self.config_entry.entry_id
 
-    @cached_property
-    def device_info(self) -> DeviceInfo | None:
+    @property
+    def device_info(self) -> DeviceInfo | None:  # pyright: ignore
         """Return the device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self.unique_id if self.unique_id else "")},

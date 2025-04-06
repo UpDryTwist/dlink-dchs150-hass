@@ -10,7 +10,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from propcache.api import cached_property
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -38,16 +37,16 @@ class DlinkDchHassBinarySensor(DlinkDchHassEntity, BinarySensorEntity):  # pyrig
 
     # TODO(tathamg@gmail.com): Resolve the incompatibility between Entity.available and CoordinatorEntity.available (want to use the latter) # noqa: TD003 FIX002
 
-    @cached_property
-    def name(self) -> str | UndefinedType | None:
+    @property
+    def name(self) -> str | UndefinedType | None:  # pyright: ignore
         """Return the name of the binary_sensor."""
         name = self.coordinator.data.get("device_name")
         if not name:
             name = DEFAULT_SENSOR_NAME
         return name
 
-    @cached_property
-    def device_class(self) -> BinarySensorDeviceClass | None:
+    @property
+    def device_class(self) -> BinarySensorDeviceClass | None:  # pyright: ignore
         """Return the class of this binary_sensor."""
         model_name = self.coordinator.data.get("model_name")
         if model_name == "DCH-S150":
@@ -56,8 +55,8 @@ class DlinkDchHassBinarySensor(DlinkDchHassEntity, BinarySensorEntity):  # pyrig
             return BinarySensorDeviceClass.MOISTURE
         raise UnsupportedDeviceTypeError
 
-    @cached_property
-    def is_on(self) -> bool | None:
+    @property
+    def is_on(self) -> bool | None:  # pyright: ignore
         """Return true if the binary_sensor is on."""
         backoff_seconds = self.config_entry.data.get(CONF_BACKOFF)
         if not backoff_seconds:

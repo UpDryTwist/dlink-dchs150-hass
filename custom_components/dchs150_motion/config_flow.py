@@ -63,10 +63,10 @@ class DlinkDchHassOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_init(
         self,
-        _user_input: dict | None = None,
+        user_input: dict | None = None,
     ) -> config_entries.ConfigFlowResult:  # pylint: disable=unused-argument
         """Manage the options."""
-        return await self.async_step_user()
+        return await self.async_step_user(user_input)
 
     async def load_device_detection_defaults(self) -> None:
         """Load the motion detection defaults."""
