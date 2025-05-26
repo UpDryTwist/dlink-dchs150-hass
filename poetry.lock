@@ -868,14 +868,14 @@ virtualenv = ["virtualenv (>=20.0.35)"]
 
 [[package]]
 name = "bump-my-version"
-version = "1.1.1"
+version = "1.1.4"
 description = "Version bump your Python project"
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "bump_my_version-1.1.1-py3-none-any.whl", hash = "sha256:6bd78e20421f6335c1a49d7e85a2f16ae8966897d0a2dd130a0e8b6b55954686"},
-    {file = "bump_my_version-1.1.1.tar.gz", hash = "sha256:2f590e0eabe894196289c296c52170559c09876454514ae8fce5db75bd47289e"},
+    {file = "bump_my_version-1.1.4-py3-none-any.whl", hash = "sha256:e4fd5cc092f32b6166dbc5aee5e8e4399c5543c95a5782cf727e2ab3e15ad99c"},
+    {file = "bump_my_version-1.1.4.tar.gz", hash = "sha256:5e6928a24a73bae11aa28184936d0f2a8071bb2f033f36d310ff194f7f8d6be8"},
 ]
 
 [package.dependencies]
@@ -6275,4 +6275,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<3.14"
-content-hash = "a0df9aedbb6fa035426c3abb4038497dc0d819758587f6208cf8cd3493345638"
+content-hash = "c71247b53e4c7c2236e153e45e58ae8be3055f51106dde3cd714af583a9be0c3"
