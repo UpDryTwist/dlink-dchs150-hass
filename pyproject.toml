@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "D-Link DCH-S150 HomeAssistant Integration"
-version = "0.4.0-dev0"
+version = "0.5.0-dev0"
 description = "HomeAssistant integration for the defunct D-Link DCH-S150 motion sensor"
 authors = ["UpDryTwist <tathamg@gmail.com>"]
 license = "MIT"
