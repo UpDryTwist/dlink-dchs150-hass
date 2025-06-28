@@ -5,6 +5,7 @@ TEST_DIR = tests
 DOCKER_REPO = registry.supercroy.com/updrytwist
 DOCKER_PROJ = dlink-dschs150-hass
 VERSION = $(shell poetry version | cut -d' ' -f2)
+BUILD_DOCKER ?= false
 
 # Before working on something, run make bump-version-<major|minor|patch>
 # When ready to commit, run make full-commit-ready or commit-ready for a faster commit
@@ -116,20 +117,26 @@ build:
 	@poetry build
 
 docker-build-one:
+ifeq ($(BUILD_DOCKER),true)
 	@docker build -t $(DOCKER_PROJ):$(VERSION) .
+endif
 
 # You need to set up buildx. Run `docker buildx create --name mybuilder` and `docker buildx use mybuilder`
 docker-build:
+ifeq ($(BUILD_DOCKER),true)
 	@docker buildx build --platform linux/amd64,linux/arm64 \
 		-t $(DOCKER_REPO)/$(DOCKER_PROJ):$(VERSION) \
 		-t $(DOCKER_REPO)/$(DOCKER_PROJ):latest \
 		--push .
+endif
 
 docker-publish-one: docker-build-one
+ifeq ($(BUILD_DOCKER),true)
 	@docker tag $(DOCKER_PROJ):$(VERSION) $(DOCKER_REPO)/$(DOCKER_PROJ):$(VERSION)
 	@docker push $(DOCKER_REPO)/$(DOCKER_PROJ):$(VERSION)
 	@docker tag $(DOCKER_PROJ):$(VERSION) $(DOCKER_REPO)/$(DOCKER_PROJ):latest
 	@docker push $(DOCKER_REPO)/$(DOCKER_PROJ):latest
+endif
 
 bump-version-major:
 	@poetry run bump-my-version bump major pyproject.toml .bumpversion.toml
