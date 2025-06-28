@@ -4,7 +4,7 @@
 TEST_DIR = tests
 DOCKER_REPO = registry.supercroy.com/updrytwist
 DOCKER_PROJ = dlink-dschs150-hass
-VERSION = $(shell poetry version | cut -d' ' -f2)
+VERSION = $(shell poetry version | rev | cut -d' ' -f1 | rev)
 BUILD_DOCKER ?= false
 
 # Before working on something, run make bump-version-<major|minor|patch>
