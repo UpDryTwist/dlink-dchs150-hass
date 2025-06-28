@@ -4,7 +4,7 @@
 NAME = "DLink DCHS150"
 # This needs to match what's in manifest.json
 DOMAIN = "dchs150_motion"
-VERSION = "0.2.0"
+VERSION = "0.3.0-dev0"
 
 ATTRIBUTION = "https://github.com/updrytwist/dlink-dchs150-hass"
 ISSUE_URL = "https://github.com/updrytwist/dlink-dchs150-hass/issues"
