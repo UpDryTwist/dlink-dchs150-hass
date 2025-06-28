@@ -47,7 +47,7 @@ poetry-config:
 	@poetry config virtualenvs.path .venv
 
 system-requirements-install:
-	@winget install rhysd.actionlint koalaman.shellcheck mvdan.shfmt Gitleaks.Gitleaks Thoughtworks.Talisman waterlan.dos2unix GitHub.cli
+	@winget install rhysd.actionlint koalaman.shellcheck mvdan.shfmt Gitleaks.Gitleaks Thoughtworks.Talisman waterlan.dos2unix GitHub.cli Microsoft.VisualStudio.2022.BuildTools
 
 install:
 	@poetry install

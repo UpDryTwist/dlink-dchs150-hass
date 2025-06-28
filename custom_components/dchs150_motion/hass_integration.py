@@ -122,8 +122,8 @@ class HassIntegration:
     @staticmethod
     async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Reload config entry."""
-        await HassIntegration.async_unload_entry(hass, entry)
-        await HassIntegration.async_setup_entry(hass, entry)
+        _ = await HassIntegration.async_unload_entry(hass, entry)
+        _ = await HassIntegration.async_setup_entry(hass, entry)
 
 
 class DlinkDchHassDataUpdateCoordinator(DataUpdateCoordinator):
